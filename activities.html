@@ -622,3 +622,22 @@ document.addEventListener('DOMContentLoaded',function(){
   }
 }
 </style>
+
+<style>
+/* BOOK_UNIFIED_PAGE_SIZE_V1 */
+#national-book .page {
+  width:min(100%,420px) !important;
+  aspect-ratio:2/3 !important;
+  min-height:0 !important;
+  height:auto !important;
+  margin:0 auto !important;
+  box-sizing:border-box !important;
+}
+#national-book .page:not(.cover) {
+  padding:32px 24px !important;
+  overflow-y:auto !important;
+}
+#national-book .page.cover {
+  padding:0 !important;
+}
+</style>
