@@ -331,3 +331,160 @@ document.getElementById('teacher-logout').onclick = () => {
 })();
 </script>
 </body></html>
+
+<!-- TEACHER_PERSISTENT_SESSION_V3 -->
+<style>
+body.teacher-authenticated #supabase-login {
+  display:none!important;
+}
+body:not(.teacher-authenticated) #teacher-messages {
+  display:none!important;
+}
+#teacher-exit {
+  position:fixed;top:12px;left:12px;z-index:1000;
+  background:#165b43;color:#fff;border:0;
+  border-radius:12px;padding:10px 16px;cursor:pointer;
+}
+#teacher-exit.hide {display:none!important}
+</style>
+<button id="teacher-exit" class="hide">خروج من حساب المعلمة</button>
+<script>
+(function(){
+  const prefix='basmatak_teacher_session_v3';
+  const tokenKey=prefix+'_access';
+  const refreshKey=prefix+'_refresh';
+  const expiryKey=prefix+'_expiry';
+  const originalFetch=window.fetch.bind(window);
+  let refreshing=null;
+
+  function save(data){
+    if(!data || !data.access_token)return;
+    localStorage.setItem(tokenKey,data.access_token);
+    if(data.refresh_token)
+      localStorage.setItem(refreshKey,data.refresh_token);
+    localStorage.setItem(
+      expiryKey,
+      String(Date.now()+(Number(data.expires_in)||3600)*1000)
+    );
+  }
+
+  function clear(){
+    [tokenKey,refreshKey,expiryKey].forEach(k=>localStorage.removeItem(k));
+    window.teacherAccessToken=null;
+    document.body.classList.remove('teacher-authenticated');
+    document.getElementById('teacher-exit').classList.add('hide');
+    document.getElementById('teacher-password').value='';
+  }
+
+  async function authorized(token){
+    const userRes=await originalFetch(
+      TEACHER_SUPABASE_URL+'/auth/v1/user',
+      {headers:{
+        apikey:TEACHER_SUPABASE_KEY,
+        Authorization:'Bearer '+token
+      }}
+    );
+    if(!userRes.ok)return false;
+    const user=await userRes.json();
+    const adminRes=await originalFetch(
+      TEACHER_SUPABASE_URL+
+      '/rest/v1/teacher_admins?select=user_id&user_id=eq.'+
+      encodeURIComponent(user.id),
+      {headers:{
+        apikey:TEACHER_SUPABASE_KEY,
+        Authorization:'Bearer '+token
+      }}
+    );
+    return adminRes.ok && (await adminRes.json()).length>0;
+  }
+
+  function show(){
+    document.body.classList.add('teacher-authenticated');
+    document.getElementById('teacher-exit').classList.remove('hide');
+    const section=document.getElementById('teacher-messages');
+    if(section)section.classList.remove('hide');
+  }
+
+  async function refreshSession(){
+    if(refreshing)return refreshing;
+    refreshing=(async()=>{
+      const refreshToken=localStorage.getItem(refreshKey);
+      if(!refreshToken)throw Error('No refresh token');
+      const response=await originalFetch(
+        TEACHER_SUPABASE_URL+'/auth/v1/token?grant_type=refresh_token',
+        {method:'POST',headers:{
+          apikey:TEACHER_SUPABASE_KEY,
+          'Content-Type':'application/json'
+        },body:JSON.stringify({refresh_token:refreshToken})}
+      );
+      if(!response.ok)throw Error('Refresh failed');
+      const data=await response.json();
+      save(data);
+      return data.access_token;
+    })();
+    try{return await refreshing}
+    finally{refreshing=null}
+  }
+
+  async function restore(){
+    let token=localStorage.getItem(tokenKey);
+    if(!token)return;
+    try{
+      const expiry=Number(localStorage.getItem(expiryKey)||0);
+      if(Date.now()>=expiry-60000)token=await refreshSession();
+      if(!await authorized(token))throw Error('Unauthorized');
+      window.teacherAccessToken=token;
+      show();
+      document.getElementById('teacher-message').textContent=
+        'تم استعادة دخول المعلمة';
+      if(typeof loadMessages==='function')loadMessages();
+    }catch(e){clear()}
+  }
+
+  // التقاط جلسة الدخول الناجحة من النظام الحالي
+  window.fetch=async function(...args){
+    const response=await originalFetch(...args);
+    const url=String(args[0]||'');
+    if(url.includes('/auth/v1/token?grant_type=password') && response.ok){
+      response.clone().json().then(data=>{
+        if(!data.access_token)return;
+        let attempts=0;
+        const interval=setInterval(()=>{
+          attempts++;
+          if(window.teacherAccessToken===data.access_token){
+            clearInterval(interval);
+            save(data);
+            show();
+          }else if(attempts>=30){
+            clearInterval(interval);
+          }
+        },200);
+      }).catch(()=>{});
+    }
+    return response;
+  };
+
+  // تجديد الجلسة قبل انتهاء صلاحيتها
+  setInterval(async()=>{
+    if(!window.teacherAccessToken)return;
+    const expiry=Number(localStorage.getItem(expiryKey)||0);
+    if(Date.now()<expiry-120000)return;
+    try{
+      const token=await refreshSession();
+      if(!await authorized(token))throw Error('Unauthorized');
+      window.teacherAccessToken=token;
+    }catch(e){clear()}
+  },60000);
+
+  document.getElementById('teacher-exit').onclick=()=>{
+    clear();
+    location.reload();
+  };
+
+  // زر الخروج القديم يستخدم نفس عملية التنظيف
+  document.getElementById('teacher-logout')
+    .addEventListener('click',clear);
+
+  restore();
+})();
+</script>

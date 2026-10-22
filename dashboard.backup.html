@@ -1,0 +1,333 @@
+<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>لوحة المعلمة | درع الوطن</title><style>
+*{box-sizing:border-box}body{margin:0;background:#f6f2e8;font-family:Tahoma,Arial;color:#164934}header{background:linear-gradient(125deg,#063d2c,#0b694a);color:white;text-align:center;padding:26px;border-bottom:5px solid #c8a55b}main{max-width:1100px;margin:20px auto;padding:0 12px}.card{background:white;border:1px solid #e2d2a7;border-radius:16px;padding:20px;margin:15px 0;box-shadow:0 5px 15px #0001}button,.link{background:#075a3f;color:white;border:0;border-radius:10px;padding:11px 16px;cursor:pointer;font:inherit;display:inline-block;text-decoration:none;margin:4px}button.alt{background:#a98743}button.danger{background:#a23c36}input{font:inherit;padding:10px;border:1px solid #cbb781;border-radius:9px;max-width:100%}.stats{display:flex;flex-wrap:wrap;gap:10px}.stat{background:#f1ead8;border-radius:12px;padding:16px;min-width:130px;flex:1}.stat strong{display:block;font-size:25px;color:#075a3f}table{width:100%;border-collapse:collapse;min-width:650px}th,td{padding:10px;border-bottom:1px solid #e9e1d0;text-align:right}th{background:#e7efdf}.scroll{overflow-x:auto}.muted{color:#776d58;font-size:14px}.hide{display:none}.actions{display:flex;gap:8px;flex-wrap:wrap}@media print{.no-print{display:none!important}body{background:white}.card{box-shadow:none}}</style></head><body><header><h1>🇸🇦 لوحة متابعة مبادرة درع الوطن</h1><p>نتائج قياس الأثر القبلي والبعدي ومشاركات الطالبات والمعلمات</p></header><main>
+<section class="card no-print" id="supabase-login">
+<h2>🔐 دخول المعلمة إلى مشاركات الطالبات</h2>
+<p class="muted">الدخول بحساب المعلمة المسجل في Supabase.</p>
+<input id="teacher-email" type="email" placeholder="البريد الإلكتروني">
+<input id="teacher-password" type="password" placeholder="كلمة المرور">
+<button id="teacher-login">دخول</button>
+<button id="teacher-logout" class="alt hide">خروج</button>
+<p id="teacher-message" class="muted"></p>
+</section>
+
+<section class="card no-print" id="gate"><h2>🔒 دخول المعلمة</h2><p class="muted">هذه حماية عرض بسيطة على هذا الجهاز، وليست نظام دخول آمنًا. لا ترفعي بيانات الطالبات الحساسة إلى استضافة عامة دون نظام صلاحيات حقيقي.</p><label>رمز الدخول المحلي</label><input type="password" id="pin" placeholder="اكتبي رمزًا من اختيارك"><button id="unlock">فتح اللوحة</button><p class="muted">في أول استخدام اختاري رمزًا؛ سيُحفظ على هذا المتصفح فقط.</p></section>
+<div id="app" class="hide"><section class="card no-print"><h2>📝 أدوات قياس الأثر للمعلمة</h2><p>هذه الروابط لإدخال بيانات القياس من لوحة المعلمة فقط، ولا تظهر في صفحة الزائرات.</p><a class="link" href="assessment.html?stage=pre">القياس القبلي</a> <a class="link" href="assessment.html?stage=post">القياس البعدي</a></section><section class="card"><h2>📊 ملخص النتائج</h2><div class="stats" id="stats"></div><p class="muted">الأرقام من هذا المتصفح والملفات المستوردة يدويًا فقط، وليست بيانات جميع الأجهزة تلقائيًا.</p></section>
+<section class="card no-print"><h2>📥 جمع البيانات</h2><p>تستطيع المعلمة استيراد ملفات CSV التي تُصدّر من صفحات قياس الأثر على أجهزة الطالبات. يُفضّل استيراد الملفات عبر جهاز خاص بالمدرسة.</p><input id="import" type="file" accept=".csv,text/csv" multiple><div class="actions"><button id="export">⬇️ تنزيل جدول موحد CSV</button><button class="alt" onclick="print()">🖨️ طباعة التقرير</button><button id="clear" class="danger">🗑️ حذف البيانات المجمعة من هذا الجهاز</button></div></section>
+<section class="card"><h2>📋 جدول القياس القبلي والبعدي</h2><input id="filter" class="no-print" placeholder="بحث بالاسم أو الفصل"><div class="scroll"><table><thead><tr><th>الاسم</th><th>الفصل</th><th>الفئة</th><th>قبلي /15</th><th>بعدي /15</th><th>التغير</th><th>الحالة</th></tr></thead><tbody id="rows"></tbody></table></div></section>
+<section class="card"><h2>💌 ملخص المشاركات المحلية</h2><div id="participations"></div></section>
+</div></main><script>
+const $=id=>document.getElementById(id),assessmentKey='vatan_assessment_v1',mergedKey='vatan_teacher_imports_v1',pinKey='vatan_teacher_pin_v1';let imported=[];try{imported=JSON.parse(localStorage.getItem(mergedKey)||'[]')}catch(e){};const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));function localRows(){try{return JSON.parse(localStorage.getItem(assessmentKey)||'[]')}catch(e){return []}}function all(){let m=new Map();for(let r of [...localRows(),...imported]){if(!['pre','post'].includes(r.stage))continue;let id=[r.stage,r.studentName||'',r.studentClass||'',r.date||'',r.score].join('::');m.set(id,r)}return [...m.values()]}function grouped(){let map=new Map();for(let r of all()){let id=(r.code||'').trim()? 'code:'+r.code.trim()+'|'+(r.studentClass||''):'name:'+(r.studentName||'').trim()+'|'+(r.studentClass||'').trim()+'|'+(r.role||'');if(!map.has(id))map.set(id,{name:r.studentName||'',cls:r.studentClass||'',role:r.role||'',pre:null,post:null});let g=map.get(id);g[r.stage]=Number(r.score)}return [...map.values()]}function render(){let g=grouped(),pre=g.filter(x=>x.pre!==null),post=g.filter(x=>x.post!==null),paired=g.filter(x=>x.pre!==null&&x.post!==null),avg=a=>a.length?(a.reduce((t,x)=>t+x,0)/a.length).toFixed(1):'—';$('stats').innerHTML=[['المشاركات المسجلة',g.length],['قياسات قبلية',pre.length],['قياسات بعدية',post.length],['حالات مكتملة',paired.length],['متوسط القبلي',avg(pre.map(x=>x.pre))],['متوسط البعدي',avg(post.map(x=>x.post))],['متوسط تغير الحالات المكتملة',avg(paired.map(x=>x.post-x.pre))]].map(x=>'<div class="stat">'+esc(x[0])+'<strong>'+esc(x[1])+'</strong></div>').join('');let term=$('filter').value.trim().toLowerCase();$('rows').innerHTML=g.filter(x=>(x.name+' '+x.cls).toLowerCase().includes(term)).map(x=>'<tr><td>'+esc(x.name)+'</td><td>'+esc(x.cls)+'</td><td>'+esc(x.role)+'</td><td>'+(x.pre??'—')+'</td><td>'+(x.post??'—')+'</td><td>'+(x.pre!==null&&x.post!==null?x.post-x.pre:'—')+'</td><td>'+(x.pre!==null&&x.post!==null?'مكتمل':'غير مكتمل')+'</td></tr>').join('')||'<tr><td colspan="7">لا توجد بيانات بعد.</td></tr>';let p=[];try{p=JSON.parse(localStorage.getItem('shield_vatan_entries_v1')||'[]')}catch(e){}$('participations').textContent='عدد المشاركات على هذا الجهاز: '+p.length+' (الرسائل: '+p.filter(x=>x.kind==='رسالة').length+'، الرسومات: '+p.filter(x=>x.kind==='رسمة').length+'، التسجيلات: '+p.filter(x=>x.kind==='صوت').length+')'}function csv(rows){let fields=['stage','role','code','studentName','studentClass','score','date','answers'];return '\\ufeff'+fields.join(',')+'\\r\\n'+rows.map(r=>fields.map(k=>'"'+String(r[k]??'').replace(/"/g,'""')+'"').join(',')).join('\\r\\n')}function download(content,name){let blob=new Blob([content],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),2000)}function parseCSV(s){s=s.replace(/^\\ufeff/,'');let lines=[],row=[],field='',quoted=false;for(let i=0;i<s.length;i++){let c=s[i];if(c==='"'){if(quoted&&s[i+1]==='"'){field+='"';i++}else quoted=!quoted}else if(c===','&&!quoted){row.push(field);field=''}else if((c==='\\n'||c==='\\r')&&!quoted){if(c==='\\r'&&s[i+1]==='\\n')i++;row.push(field);if(row.some(v=>v!==''))lines.push(row);row=[];field=''}else field+=c}row.push(field);if(row.some(v=>v!==''))lines.push(row);if(!lines.length)return [];let head=lines.shift();if(!['stage','score','studentName','studentClass'].every(k=>head.includes(k)))throw Error('أعمدة الملف غير مطابقة');return lines.map(c=>Object.fromEntries(head.map((h,i)=>[h,c[i]||'']))).filter(r=>['pre','post'].includes(r.stage)&&Number.isFinite(Number(r.score))&&Number(r.score)>=0&&Number(r.score)<=15)}$('unlock').onclick=()=>{let pin=$('pin').value.trim();if(pin.length<4){alert('اكتبي رمزًا من أربعة أحرف أو أرقام على الأقل');return}let saved=localStorage.getItem(pinKey);if(saved&&saved!==pin){alert('الرمز غير صحيح');return}if(!saved)localStorage.setItem(pinKey,pin);$('gate').classList.add('hide');$('app').classList.remove('hide');render()};$('filter').oninput=render;$('export').onclick=()=>download(csv(all()),'نتائج_درع_الوطن_المجمعة.csv');$('import').onchange=async e=>{let files=[...e.target.files],added=0;for(let file of files){try{let data=parseCSV(await file.text());imported.push(...data);added+=data.length}catch(err){alert('تعذر استيراد '+file.name+': '+err.message)}}try{localStorage.setItem(mergedKey,JSON.stringify(imported));render();alert('تم استيراد '+added+' سجلًا')}catch(err){alert('تعذر حفظ البيانات؛ مساحة التخزين ممتلئة')}};$('clear').onclick=()=>{if(confirm('حذف الملفات المستوردة والنتائج المحلية من هذا الجهاز؟ لا يمكن التراجع.')){localStorage.removeItem(mergedKey);localStorage.removeItem(assessmentKey);imported=[];render()}};</script>
+<script>
+const TEACHER_SUPABASE_URL = 'https://stpwlbbfijjyqukirjju.supabase.co';
+const TEACHER_SUPABASE_KEY = 'sb_publishable__fD0Sb2vSH_Qk_61kvP5Jg_S0W6_QDF';
+
+document.getElementById('teacher-login').onclick = async () => {
+  const email = document.getElementById('teacher-email').value.trim();
+  const password = document.getElementById('teacher-password').value;
+  const msg = document.getElementById('teacher-message');
+  msg.textContent = 'جارٍ التحقق من الحساب...';
+
+  try {
+    const response = await fetch(
+      TEACHER_SUPABASE_URL + '/auth/v1/token?grant_type=password',
+      {
+        method: 'POST',
+        headers: {
+          'apikey': TEACHER_SUPABASE_KEY,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({email, password})
+      }
+    );
+    const data = await response.json();
+    if (!response.ok || !data.access_token) {
+      msg.textContent = 'تعذر تسجيل الدخول. تحققي من البريد وكلمة المرور.';
+      return;
+    }
+
+    const check = await fetch(
+      TEACHER_SUPABASE_URL + '/rest/v1/teacher_admins?select=user_id&user_id=eq.' +
+      encodeURIComponent(data.user.id),
+      {
+        headers: {
+          'apikey': TEACHER_SUPABASE_KEY,
+          'Authorization': 'Bearer ' + data.access_token
+        }
+      }
+    );
+    if (!check.ok) throw Error('تعذر التحقق من الصلاحيات');
+    const admins = await check.json();
+    if (!admins.length) {
+      msg.textContent = 'هذا الحساب غير مصرح له بإدارة المشاركات.';
+      return;
+    }
+
+    window.teacherAccessToken = data.access_token;
+    msg.textContent = 'تم تسجيل دخول المعلمة بنجاح';
+    document.getElementById('teacher-logout').classList.remove('hide');
+  } catch (error) {
+    msg.textContent = 'تعذر الاتصال أو التحقق من الصلاحيات.';
+  }
+};
+
+document.getElementById('teacher-logout').onclick = () => {
+  window.teacherAccessToken = null;
+  document.getElementById('teacher-password').value = '';
+  document.getElementById('teacher-message').textContent = 'تم تسجيل الخروج';
+  document.getElementById('teacher-logout').classList.add('hide');
+};
+</script>
+
+<script>
+// MAGIC_LINK_LOGIN_V1
+(async function () {
+  const msg = document.getElementById('teacher-message');
+  const params = new URLSearchParams(location.hash.slice(1));
+  const accessToken = params.get('access_token');
+
+  if (!accessToken) return;
+
+  history.replaceState(null, '', location.pathname);
+
+  try {
+    msg.textContent = 'جارٍ التحقق من دخول المعلمة...';
+
+    const userResponse = await fetch(
+      TEACHER_SUPABASE_URL + '/auth/v1/user',
+      {headers: {
+        apikey: TEACHER_SUPABASE_KEY,
+        Authorization: 'Bearer ' + accessToken
+      }}
+    );
+
+    if (!userResponse.ok) throw Error('تعذر التحقق من الحساب');
+    const user = await userResponse.json();
+
+    const adminResponse = await fetch(
+      TEACHER_SUPABASE_URL +
+      '/rest/v1/teacher_admins?select=user_id&user_id=eq.' +
+      encodeURIComponent(user.id),
+      {headers: {
+        apikey: TEACHER_SUPABASE_KEY,
+        Authorization: 'Bearer ' + accessToken
+      }}
+    );
+
+    if (!adminResponse.ok) throw Error('تعذر التحقق من الصلاحيات');
+
+    const admins = await adminResponse.json();
+    if (!admins.length) throw Error('الحساب غير مصرح له بالإدارة');
+
+    window.teacherAccessToken = accessToken;
+    msg.textContent = 'تم تسجيل دخول المعلمة بنجاح';
+    document.getElementById('teacher-logout').classList.remove('hide');
+
+  } catch (error) {
+    window.teacherAccessToken = null;
+    msg.textContent = error.message;
+  }
+})();
+</script>
+
+<style>
+/* SIMPLE_TEACHER_LOGIN_V1 */
+#gate{display:none!important}
+#supabase-login{max-width:650px;margin:20px auto;text-align:center}
+#supabase-login input{width:100%;max-width:100%;margin:7px 0}
+#teacher-login{width:100%;margin:12px 0}
+#teacher-toggle,#teacher-forgot{background:transparent;color:#075a3f}
+#teacher-forgot{text-decoration:underline}
+</style>
+<script>
+(function(){
+ const form=document.getElementById('supabase-login');
+ const password=document.getElementById('teacher-password');
+ const login=document.getElementById('teacher-login');
+ const msg=document.getElementById('teacher-message');
+ if(!form||!password||!login)return;
+
+ const eye=document.createElement('button');
+ eye.id='teacher-toggle';
+ eye.type='button';
+ eye.textContent='👁️ إظهار كلمة المرور';
+ password.insertAdjacentElement('afterend',eye);
+ eye.onclick=()=>{
+   const showing=password.type==='text';
+   password.type=showing?'password':'text';
+   eye.textContent=showing?'👁️ إظهار كلمة المرور':'🙈 إخفاء كلمة المرور';
+ };
+
+ const forgot=document.createElement('button');
+ forgot.id='teacher-forgot';
+ forgot.type='button';
+ forgot.textContent='نسيتِ كلمة المرور؟';
+ login.insertAdjacentElement('afterend',forgot);
+
+ forgot.onclick=async()=>{
+   const email=document.getElementById('teacher-email').value.trim();
+   if(!email){msg.textContent='اكتبي بريدك الإلكتروني أولًا';return}
+   if(!confirm('إرسال رابط تغيير كلمة المرور إلى بريدك؟'))return;
+   forgot.disabled=true;
+   try{
+     const r=await fetch(TEACHER_SUPABASE_URL+'/auth/v1/recover',{
+       method:'POST',
+       headers:{
+         apikey:TEACHER_SUPABASE_KEY,
+         'Content-Type':'application/json'
+       },
+       body:JSON.stringify({
+         email,
+         redirect_to:location.origin+
+           location.pathname.replace(/[^/]*$/,'reset-password.html')
+       })
+     });
+     msg.textContent=r.ok
+       ?'إذا كان البريد مسجلًا، ستصلك رسالة الاستعادة.'
+       :'تعذر إرسال الرسالة الآن. انتظري قليلًا ثم حاولي مجددًا.';
+   }catch(e){
+     msg.textContent='تعذر الاتصال بخدمة الاستعادة.';
+   }finally{forgot.disabled=false}
+ };
+})();
+</script>
+
+<style>
+/* TEACHER_MESSAGES_V1 */
+#teacher-messages{max-width:1100px;margin:20px auto}
+#teacher-messages table{min-width:700px}
+#teacher-messages td{vertical-align:top}
+#teacher-messages .message-text{white-space:pre-wrap;overflow-wrap:anywhere;max-width:380px}
+#teacher-messages button{padding:7px 10px}
+</style>
+<section class="card hide" id="teacher-messages">
+<h2>💌 مشاركات الطالبات</h2>
+<p class="muted">راجعي المشاركات قبل اعتماد ظهورها للزائرات.</p>
+<button type="button" id="refresh-messages">🔄 تحديث المشاركات</button>
+<p id="messages-status"></p>
+<div class="scroll">
+<table>
+<thead><tr>
+<th>اسم الطالبة</th><th>المشاركة</th><th>التاريخ</th>
+<th>الحالة</th><th>الإجراءات</th>
+</tr></thead>
+<tbody id="teacher-message-rows"></tbody>
+</table>
+</div>
+</section>
+<script>
+(function(){
+ const section=document.getElementById('teacher-messages');
+ const rows=document.getElementById('teacher-message-rows');
+ const status=document.getElementById('messages-status');
+ const key=TEACHER_SUPABASE_KEY;
+ const url=TEACHER_SUPABASE_URL+'/rest/v1/student_messages';
+ let busy=false;
+
+ function authHeaders(){
+   return {
+     apikey:key,
+     Authorization:'Bearer '+window.teacherAccessToken
+   };
+ }
+
+ function cell(tr,value){
+   const td=document.createElement('td');
+   td.textContent=value==null?'':String(value);
+   tr.appendChild(td);
+   return td;
+ }
+
+ async function loadMessages(){
+   if(!window.teacherAccessToken){
+     section.classList.add('hide');
+     return;
+   }
+   section.classList.remove('hide');
+   status.textContent='جارٍ تحميل المشاركات...';
+   try{
+     const r=await fetch(
+       url+'?select=id,student_name,message,status,created_at&order=created_at.desc',
+       {headers:authHeaders()}
+     );
+     if(!r.ok)throw Error('تعذر قراءة المشاركات: '+r.status);
+     const data=await r.json();
+     rows.replaceChildren();
+
+     for(const item of data){
+       const tr=document.createElement('tr');
+       cell(tr,item.student_name);
+       cell(tr,item.message).className='message-text';
+       cell(tr,item.created_at?
+         new Date(item.created_at).toLocaleString('ar-SA'):'');
+       cell(tr,({
+         pending:'بانتظار المراجعة',
+         approved:'معتمدة',
+         rejected:'مرفوضة'
+       })[item.status]||item.status);
+
+       const actions=document.createElement('td');
+       for(const [label,newStatus] of [
+         ['اعتماد','approved'],['رفض','rejected']
+       ]){
+         const btn=document.createElement('button');
+         btn.type='button';
+         btn.textContent=label;
+         btn.disabled=item.status===newStatus;
+         btn.onclick=()=>changeMessage(item.id,'PATCH',newStatus);
+         actions.appendChild(btn);
+       }
+       const del=document.createElement('button');
+       del.type='button';
+       del.className='danger';
+       del.textContent='حذف';
+       del.onclick=()=>{
+         if(confirm('حذف هذه المشاركة نهائيًا؟'))
+           changeMessage(item.id,'DELETE');
+       };
+       actions.appendChild(del);
+       tr.appendChild(actions);
+       rows.appendChild(tr);
+     }
+     status.textContent='عدد المشاركات: '+data.length;
+   }catch(e){
+     status.textContent=e.message;
+   }
+ }
+
+ async function changeMessage(id,method,newStatus){
+   if(busy)return;
+   busy=true;
+   status.textContent='جارٍ حفظ التغيير...';
+   try{
+     const headers=authHeaders();
+     const options={method,headers};
+     if(method==='PATCH'){
+       headers['Content-Type']='application/json';
+       options.body=JSON.stringify({status:newStatus});
+     }
+     const r=await fetch(
+       url+'?id=eq.'+encodeURIComponent(id),options
+     );
+     if(!r.ok)throw Error('تعذر حفظ التغيير: '+r.status);
+     await loadMessages();
+   }catch(e){
+     status.textContent=e.message;
+   }finally{busy=false}
+ }
+
+ document.getElementById('refresh-messages').onclick=loadMessages;
+
+ // عرض المشاركات عند نجاح دخول المعلمة
+ const observer=new MutationObserver(()=>{
+   if(window.teacherAccessToken){
+     observer.disconnect();
+     loadMessages();
+   }
+ });
+ observer.observe(document.body,{
+   subtree:true,childList:true,attributes:true
+ });
+ if(window.teacherAccessToken)loadMessages();
+})();
+</script>
+</body></html>
