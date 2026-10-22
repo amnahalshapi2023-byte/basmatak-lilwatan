@@ -395,6 +395,42 @@ document.getElementById('clearEntry').onclick=()=>{if(confirm('مسح المدخ
     pages.push({title,body,type});
   }
 
+  // BOOK_PAGE_FLIP_V1
+  let flipBusy=false;
+
+  function turnPage(target){
+    if(flipBusy || target<0 || target>=pages.length || target===index)return;
+
+    const current=root.querySelector('.page');
+    if(!current){
+      index=target;
+      render();
+      return;
+    }
+
+    flipBusy=true;
+    const forward=target>index;
+
+    current.classList.add(forward?'flip-next':'flip-prev');
+
+    setTimeout(()=>{
+      index=target;
+      render();
+
+      const incoming=root.querySelector('.page');
+      if(incoming){
+        incoming.classList.add(forward?'flip-enter-next':'flip-enter-prev');
+        requestAnimationFrame(()=>{
+          requestAnimationFrame(()=>{
+            incoming.classList.remove('flip-enter-next','flip-enter-prev');
+          });
+        });
+      }
+
+      setTimeout(()=>{flipBusy=false},450);
+    },280);
+  }
+
   function render(){
     root.replaceChildren();
 
@@ -412,7 +448,7 @@ document.getElementById('clearEntry').onclick=()=>{if(confirm('مسح المدخ
         const b=document.createElement('button');
         b.type='button';
         b.textContent=(i+1)+' — '+item.title;
-        b.onclick=()=>{index=i+3;render()};
+        b.onclick=()=>turnPage(i+3);
         toc.appendChild(b);
       });
       page.appendChild(toc);
@@ -430,7 +466,7 @@ document.getElementById('clearEntry').onclick=()=>{if(confirm('مسح المدخ
     const previous=document.createElement('button');
     previous.textContent='→ السابقة';
     previous.disabled=index===0;
-    previous.onclick=()=>{index--;render()};
+    previous.onclick=()=>turnPage(index-1);
 
     const count=document.createElement('span');
     count.textContent=(index+1)+' / '+pages.length;
@@ -438,7 +474,7 @@ document.getElementById('clearEntry').onclick=()=>{if(confirm('مسح المدخ
     const next=document.createElement('button');
     next.textContent='التالية ←';
     next.disabled=index===pages.length-1;
-    next.onclick=()=>{index++;render()};
+    next.onclick=()=>turnPage(index+1);
 
     const save=document.createElement('button');
     save.textContent='📥 حفظ PDF';
@@ -451,6 +487,20 @@ document.getElementById('clearEntry').onclick=()=>{if(confirm('مسح المدخ
     root.appendChild(nav);
   }
 
+
+
+  let touchStartX=0;
+  root.addEventListener('touchstart',e=>{
+    touchStartX=e.changedTouches[0].screenX;
+  },{passive:true});
+
+  root.addEventListener('touchend',e=>{
+    if(e.target.closest('button'))return;
+    const distance=e.changedTouches[0].screenX-touchStartX;
+    if(Math.abs(distance)<65)return;
+    if(distance>0)turnPage(index+1);
+    else turnPage(index-1);
+  },{passive:true});
 
   // BOOK_PRINT_PDF_V2
   function buildPrint(){
@@ -758,6 +808,40 @@ document.addEventListener('DOMContentLoaded',function(){
     bottom:13mm;
     color:#587467 !important;
     font-size:10pt !important;
+  }
+}
+</style>
+
+<style>
+/* BOOK_PAGE_FLIP_V1 */
+#national-book {
+  perspective:1400px;
+}
+#national-book .page {
+  transform-origin:right center;
+  backface-visibility:hidden;
+  transition:transform .45s ease,opacity .45s ease;
+  will-change:transform;
+}
+#national-book .page.flip-next {
+  transform:rotateY(-85deg);
+  opacity:.2;
+}
+#national-book .page.flip-prev {
+  transform:rotateY(85deg);
+  opacity:.2;
+}
+#national-book .page.flip-enter-next {
+  transform:rotateY(65deg);
+  opacity:.3;
+}
+#national-book .page.flip-enter-prev {
+  transform:rotateY(-65deg);
+  opacity:.3;
+}
+@media(prefers-reduced-motion:reduce){
+  #national-book .page {
+    transition:none!important;
   }
 }
 </style>
