@@ -690,10 +690,10 @@ document.addEventListener('DOMContentLoaded',function(){
     min-height:0 !important;
     max-height:297mm !important;
     margin:0 !important;
-    padding:22mm !important;
+    padding:18mm !important;
     box-sizing:border-box !important;
     border:0 !important;
-    background:#fcfaf4 !important;
+    background:#f3efe5 !important;
     display:flex !important;
     flex-direction:column !important;
     align-items:center !important;
@@ -705,6 +705,20 @@ document.addEventListener('DOMContentLoaded',function(){
     overflow:hidden !important;
     print-color-adjust:exact;
     -webkit-print-color-adjust:exact;
+  }
+
+  #national-print .print-page:not(.print-cover)::before {
+    content:"";
+    position:absolute;
+    inset:18mm;
+    border:1px solid #cbb783;
+    pointer-events:none;
+  }
+  #national-print .print-page:not(.print-cover) h2,
+  #national-print .print-page:not(.print-cover) p {
+    max-width:150mm !important;
+    position:relative;
+    z-index:1;
   }
   #national-print .print-page:last-child {
     break-after:auto;
