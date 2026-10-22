@@ -451,18 +451,42 @@ document.getElementById('clearEntry').onclick=()=>{if(confirm('مسح المدخ
     root.appendChild(nav);
   }
 
+
+  // BOOK_PRINT_PDF_V2
   function buildPrint(){
     printRoot.replaceChildren();
-    pages.forEach((item,i)=>{
+
+    pages.forEach((item, i)=>{
       const section=document.createElement('section');
       section.className='print-page';
-      const h=document.createElement('h2');
-      h.textContent=item.title;
-      const p=document.createElement('p');
-      p.textContent=item.type==='toc'
-        ? pages.slice(3).map((x,j)=>(j+1)+' — '+x.title).join('\n')
-        : item.body;
-      section.append(h,p);
+
+      if(item.type==='cover'){
+        section.classList.add('print-cover');
+        const img=document.createElement('img');
+        img.src='book-cover.png';
+        img.alt='غلاف درع الوطن';
+        section.appendChild(img);
+      }else{
+        const heading=document.createElement('h2');
+        heading.textContent=item.title;
+
+        const paragraph=document.createElement('p');
+        paragraph.textContent=item.type==='toc'
+          ? pages.slice(3).map((x,j)=>
+              (j+1)+' — '+x.title).join('\\n')
+          : item.body;
+
+        const ornament=document.createElement('div');
+        ornament.className='print-ornament';
+        ornament.textContent='✦';
+
+        section.append(ornament,heading,paragraph);
+
+        const footer=document.createElement('small');
+        footer.textContent='درع الوطن  •  '+(i+1);
+        section.appendChild(footer);
+      }
+
       printRoot.appendChild(section);
     });
   }
@@ -643,5 +667,80 @@ document.addEventListener('DOMContentLoaded',function(){
 }
 #national-book .page.cover {
   padding:0 !important;
+}
+</style>
+
+<style>
+/* BOOK_PRINT_PDF_V2 */
+@page { size:A4 portrait; margin:0; }
+
+@media print {
+  html,body {
+    margin:0 !important;
+    padding:0 !important;
+    background:white !important;
+  }
+  #national-print {
+    display:block !important;
+    width:100% !important;
+  }
+  #national-print .print-page {
+    width:210mm !important;
+    height:297mm !important;
+    min-height:0 !important;
+    max-height:297mm !important;
+    margin:0 !important;
+    padding:22mm !important;
+    box-sizing:border-box !important;
+    border:0 !important;
+    background:#fcfaf4 !important;
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:center !important;
+    justify-content:center !important;
+    text-align:center !important;
+    position:relative !important;
+    break-after:page;
+    page-break-after:always;
+    overflow:hidden !important;
+    print-color-adjust:exact;
+    -webkit-print-color-adjust:exact;
+  }
+  #national-print .print-page:last-child {
+    break-after:auto;
+    page-break-after:auto;
+  }
+  #national-print .print-cover {
+    padding:0 !important;
+    background:white !important;
+  }
+  #national-print .print-cover img {
+    width:100% !important;
+    height:100% !important;
+    object-fit:contain !important;
+    display:block !important;
+  }
+  #national-print .print-page h2 {
+    color:#075438 !important;
+    font-size:27pt !important;
+    margin:12mm 0 !important;
+  }
+  #national-print .print-page p {
+    color:#234536 !important;
+    font-size:16pt !important;
+    line-height:2.1 !important;
+    white-space:pre-wrap !important;
+    overflow-wrap:anywhere !important;
+  }
+  #national-print .print-ornament {
+    color:#b49a61 !important;
+    font-size:23pt !important;
+  }
+  #national-print .print-page small {
+    position:absolute;
+    bottom:13mm;
+    color:#587467 !important;
+    font-size:10pt !important;
+  }
 }
 </style>
