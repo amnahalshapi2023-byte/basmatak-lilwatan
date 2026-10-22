@@ -128,4 +128,66 @@ document.getElementById('teacher-logout').onclick = () => {
   }
 })();
 </script>
+
+<style>
+/* SIMPLE_TEACHER_LOGIN_V1 */
+#gate{display:none!important}
+#supabase-login{max-width:650px;margin:20px auto;text-align:center}
+#supabase-login input{width:100%;max-width:100%;margin:7px 0}
+#teacher-login{width:100%;margin:12px 0}
+#teacher-toggle,#teacher-forgot{background:transparent;color:#075a3f}
+#teacher-forgot{text-decoration:underline}
+</style>
+<script>
+(function(){
+ const form=document.getElementById('supabase-login');
+ const password=document.getElementById('teacher-password');
+ const login=document.getElementById('teacher-login');
+ const msg=document.getElementById('teacher-message');
+ if(!form||!password||!login)return;
+
+ const eye=document.createElement('button');
+ eye.id='teacher-toggle';
+ eye.type='button';
+ eye.textContent='👁️ إظهار كلمة المرور';
+ password.insertAdjacentElement('afterend',eye);
+ eye.onclick=()=>{
+   const showing=password.type==='text';
+   password.type=showing?'password':'text';
+   eye.textContent=showing?'👁️ إظهار كلمة المرور':'🙈 إخفاء كلمة المرور';
+ };
+
+ const forgot=document.createElement('button');
+ forgot.id='teacher-forgot';
+ forgot.type='button';
+ forgot.textContent='نسيتِ كلمة المرور؟';
+ login.insertAdjacentElement('afterend',forgot);
+
+ forgot.onclick=async()=>{
+   const email=document.getElementById('teacher-email').value.trim();
+   if(!email){msg.textContent='اكتبي بريدك الإلكتروني أولًا';return}
+   if(!confirm('إرسال رابط تغيير كلمة المرور إلى بريدك؟'))return;
+   forgot.disabled=true;
+   try{
+     const r=await fetch(TEACHER_SUPABASE_URL+'/auth/v1/recover',{
+       method:'POST',
+       headers:{
+         apikey:TEACHER_SUPABASE_KEY,
+         'Content-Type':'application/json'
+       },
+       body:JSON.stringify({
+         email,
+         redirect_to:location.origin+
+           location.pathname.replace(/[^/]*$/,'reset-password.html')
+       })
+     });
+     msg.textContent=r.ok
+       ?'إذا كان البريد مسجلًا، ستصلك رسالة الاستعادة.'
+       :'تعذر إرسال الرسالة الآن. انتظري قليلًا ثم حاولي مجددًا.';
+   }catch(e){
+     msg.textContent='تعذر الاتصال بخدمة الاستعادة.';
+   }finally{forgot.disabled=false}
+ };
+})();
+</script>
 </body></html>
