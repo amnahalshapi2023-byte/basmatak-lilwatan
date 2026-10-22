@@ -396,77 +396,77 @@ document.getElementById('clearEntry').onclick=()=>{if(confirm('مسح المدخ
   }
 
   // BOOK_PAGE_FLIP_V1
+
+  // BOOK_SPREAD_V1
   let flipBusy=false;
 
-  function turnPage(target){
-    if(flipBusy || target<0 || target>=pages.length || target===index)return;
+  function makeBookPage(item,pageNumber){
+    const page=document.createElement('div');
+    page.className='page'+(item.type==='cover'?' cover':'');
 
-    const current=root.querySelector('.page');
-    if(!current){
-      index=target;
-      render();
-      return;
+    const title=document.createElement('h2');
+    title.textContent=item.title;
+    page.appendChild(title);
+
+    if(item.type==='toc'){
+      const toc=document.createElement('div');
+      toc.className='toc';
+      pages.slice(3).forEach((entry,i)=>{
+        const button=document.createElement('button');
+        button.type='button';
+        button.textContent=(i+1)+' — '+entry.title;
+        button.onclick=()=>turnPage(i+3);
+        toc.appendChild(button);
+      });
+      page.appendChild(toc);
+    }else{
+      const body=document.createElement('p');
+      body.textContent=item.body;
+      page.appendChild(body);
     }
+    return page;
+  }
+
+  function spreadStart(i){
+    return i===0?0:1+2*Math.floor((i-1)/2);
+  }
+
+  function turnPage(target){
+    if(flipBusy || target<0 || target>=pages.length)return;
+    const destination=spreadStart(target);
+    if(destination===index)return;
 
     flipBusy=true;
-    const forward=target>index;
-
-    // إبقاء الصفحة القديمة حتى تنتهي حركة طيّها
-    current.style.transformOrigin=forward?'right center':'left center';
-    current.style.transition='transform 850ms ease-in-out, opacity 850ms ease-in-out';
-    current.style.transform=forward?'rotateY(-165deg)':'rotateY(165deg)';
-    current.style.opacity='0.15';
-
+    const book=root.querySelector('.book-spread');
+    if(book){
+      book.classList.add(destination>index?'turn-forward':'turn-backward');
+    }
     setTimeout(()=>{
-      index=target;
+      index=destination;
       render();
-      const incoming=root.querySelector('.page');
-      if(incoming){
-        incoming.style.transformOrigin=forward?'left center':'right center';
-        incoming.style.transition='none';
-        incoming.style.transform=forward?'rotateY(75deg)':'rotateY(-75deg)';
-        incoming.style.opacity='0.3';
-
-        requestAnimationFrame(()=>{
-          requestAnimationFrame(()=>{
-            incoming.style.transition='transform 650ms ease-out, opacity 650ms ease-out';
-            incoming.style.transform='rotateY(0deg)';
-            incoming.style.opacity='1';
-          });
-        });
-      }
-      setTimeout(()=>{flipBusy=false},700);
-    },850);
+      flipBusy=false;
+    },520);
   }
 
   function render(){
     root.replaceChildren();
+    if(!pages.length)return;
 
-    const page=document.createElement('div');
-    page.className='page'+(pages[index].type==='cover'?' cover':'');
+    const spread=document.createElement('div');
+    spread.className='book-spread';
 
-    const title=document.createElement('h2');
-    title.textContent=pages[index].title;
-    page.appendChild(title);
-
-    if(pages[index].type==='toc'){
-      const toc=document.createElement('div');
-      toc.className='toc';
-      pages.slice(3).forEach((item,i)=>{
-        const b=document.createElement('button');
-        b.type='button';
-        b.textContent=(i+1)+' — '+item.title;
-        b.onclick=()=>turnPage(i+3);
-        toc.appendChild(b);
-      });
-      page.appendChild(toc);
+    if(index===0){
+      spread.classList.add('cover-spread');
+      spread.appendChild(makeBookPage(pages[0],0));
     }else{
-      const text=document.createElement('p');
-      text.textContent=pages[index].body;
-      page.appendChild(text);
+      const right=makeBookPage(pages[index],index);
+      const left=index+1<pages.length
+        ?makeBookPage(pages[index+1],index+1)
+        :document.createElement('div');
+      if(index+1>=pages.length)left.className='page blank-page';
+      spread.append(right,left);
     }
-
-    root.appendChild(page);
+    root.appendChild(spread);
 
     const nav=document.createElement('div');
     nav.className='book-nav';
@@ -474,15 +474,17 @@ document.getElementById('clearEntry').onclick=()=>{if(confirm('مسح المدخ
     const previous=document.createElement('button');
     previous.textContent='→ السابقة';
     previous.disabled=index===0;
-    previous.onclick=()=>turnPage(index-1);
+    previous.onclick=()=>turnPage(index===1?0:index-2);
 
     const count=document.createElement('span');
-    count.textContent=(index+1)+' / '+pages.length;
+    count.textContent=index===0
+      ?'الغلاف'
+      :(index+1)+' – '+Math.min(index+2,pages.length)+' / '+pages.length;
 
     const next=document.createElement('button');
     next.textContent='التالية ←';
-    next.disabled=index===pages.length-1;
-    next.onclick=()=>turnPage(index+1);
+    next.disabled=index===spreadStart(pages.length-1);
+    next.onclick=()=>turnPage(index===0?1:index+2);
 
     const save=document.createElement('button');
     save.textContent='📥 حفظ PDF';
@@ -495,20 +497,18 @@ document.getElementById('clearEntry').onclick=()=>{if(confirm('مسح المدخ
     root.appendChild(nav);
   }
 
-
-
   let touchStartX=0;
   root.addEventListener('touchstart',e=>{
     touchStartX=e.changedTouches[0].screenX;
   },{passive:true});
-
   root.addEventListener('touchend',e=>{
     if(e.target.closest('button'))return;
-    const distance=e.changedTouches[0].screenX-touchStartX;
-    if(Math.abs(distance)<65)return;
-    if(distance>0)turnPage(index+1);
-    else turnPage(index-1);
+    const dx=e.changedTouches[0].screenX-touchStartX;
+    if(Math.abs(dx)<65)return;
+    if(dx>0)turnPage(index===0?1:index+2);
+    else turnPage(index===1?0:index-2);
   },{passive:true});
+
 
   // BOOK_PRINT_PDF_V2
   function buildPrint(){
@@ -851,5 +851,71 @@ document.addEventListener('DOMContentLoaded',function(){
   #national-book .page {
     transition:none!important;
   }
+}
+</style>
+
+<style>
+/* BOOK_SPREAD_V1 */
+#national-book{max-width:960px!important}
+#national-book .book-spread{
+  display:flex;
+  direction:rtl;
+  width:100%;
+  justify-content:center;
+  align-items:stretch;
+  perspective:1800px;
+  transform-style:preserve-3d;
+}
+#national-book .book-spread:not(.cover-spread)>.page{
+  flex:1 1 0;
+  width:50%!important;
+  min-width:0;
+  min-height:520px!important;
+  margin:0!important;
+  border-radius:3px!important;
+  box-shadow:inset 5px 0 15px #00000012,0 8px 20px #00000012;
+}
+#national-book .book-spread:not(.cover-spread)>.page:first-child{
+  border-radius:0 12px 12px 0!important;
+}
+#national-book .book-spread:not(.cover-spread)>.page:last-child{
+  border-radius:12px 0 0 12px!important;
+}
+#national-book .book-spread .blank-page{
+  background:#f3efe5!important;
+}
+#national-book .book-spread.cover-spread>.page{
+  margin:0 auto!important;
+}
+#national-book .book-spread.turn-forward{
+  animation:spreadTurnForward .52s ease-in-out;
+}
+#national-book .book-spread.turn-backward{
+  animation:spreadTurnBackward .52s ease-in-out;
+}
+@keyframes spreadTurnForward{
+  0%{transform:perspective(1800px) rotateY(0)}
+  50%{transform:perspective(1800px) rotateY(-12deg)}
+  100%{transform:perspective(1800px) rotateY(0)}
+}
+@keyframes spreadTurnBackward{
+  0%{transform:perspective(1800px) rotateY(0)}
+  50%{transform:perspective(1800px) rotateY(12deg)}
+  100%{transform:perspective(1800px) rotateY(0)}
+}
+@media(max-width:650px){
+  #national-book .book-spread:not(.cover-spread)>.page{
+    padding:14px!important;
+    min-height:360px!important;
+  }
+  #national-book .book-spread .page h2{
+    font-size:19px!important;
+  }
+  #national-book .book-spread .page p{
+    font-size:13px!important;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  #national-book .book-spread{animation:none!important}
 }
 </style>
