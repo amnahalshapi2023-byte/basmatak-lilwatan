@@ -16,4 +16,65 @@
 <section class="card"><h2>📋 جدول القياس القبلي والبعدي</h2><input id="filter" class="no-print" placeholder="بحث بالاسم أو الفصل"><div class="scroll"><table><thead><tr><th>الاسم</th><th>الفصل</th><th>الفئة</th><th>قبلي /15</th><th>بعدي /15</th><th>التغير</th><th>الحالة</th></tr></thead><tbody id="rows"></tbody></table></div></section>
 <section class="card"><h2>💌 ملخص المشاركات المحلية</h2><div id="participations"></div></section>
 </div></main><script>
-const $=id=>document.getElementById(id),assessmentKey='vatan_assessment_v1',mergedKey='vatan_teacher_imports_v1',pinKey='vatan_teacher_pin_v1';let imported=[];try{imported=JSON.parse(localStorage.getItem(mergedKey)||'[]')}catch(e){};const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));function localRows(){try{return JSON.parse(localStorage.getItem(assessmentKey)||'[]')}catch(e){return []}}function all(){let m=new Map();for(let r of [...localRows(),...imported]){if(!['pre','post'].includes(r.stage))continue;let id=[r.stage,r.studentName||'',r.studentClass||'',r.date||'',r.score].join('::');m.set(id,r)}return [...m.values()]}function grouped(){let map=new Map();for(let r of all()){let id=(r.code||'').trim()? 'code:'+r.code.trim()+'|'+(r.studentClass||''):'name:'+(r.studentName||'').trim()+'|'+(r.studentClass||'').trim()+'|'+(r.role||'');if(!map.has(id))map.set(id,{name:r.studentName||'',cls:r.studentClass||'',role:r.role||'',pre:null,post:null});let g=map.get(id);g[r.stage]=Number(r.score)}return [...map.values()]}function render(){let g=grouped(),pre=g.filter(x=>x.pre!==null),post=g.filter(x=>x.post!==null),paired=g.filter(x=>x.pre!==null&&x.post!==null),avg=a=>a.length?(a.reduce((t,x)=>t+x,0)/a.length).toFixed(1):'—';$('stats').innerHTML=[['المشاركات المسجلة',g.length],['قياسات قبلية',pre.length],['قياسات بعدية',post.length],['حالات مكتملة',paired.length],['متوسط القبلي',avg(pre.map(x=>x.pre))],['متوسط البعدي',avg(post.map(x=>x.post))],['متوسط تغير الحالات المكتملة',avg(paired.map(x=>x.post-x.pre))]].map(x=>'<div class="stat">'+esc(x[0])+'<strong>'+esc(x[1])+'</strong></div>').join('');let term=$('filter').value.trim().toLowerCase();$('rows').innerHTML=g.filter(x=>(x.name+' '+x.cls).toLowerCase().includes(term)).map(x=>'<tr><td>'+esc(x.name)+'</td><td>'+esc(x.cls)+'</td><td>'+esc(x.role)+'</td><td>'+(x.pre??'—')+'</td><td>'+(x.post??'—')+'</td><td>'+(x.pre!==null&&x.post!==null?x.post-x.pre:'—')+'</td><td>'+(x.pre!==null&&x.post!==null?'مكتمل':'غير مكتمل')+'</td></tr>').join('')||'<tr><td colspan="7">لا توجد بيانات بعد.</td></tr>';let p=[];try{p=JSON.parse(localStorage.getItem('shield_vatan_entries_v1')||'[]')}catch(e){}$('participations').textContent='عدد المشاركات على هذا الجهاز: '+p.length+' (الرسائل: '+p.filter(x=>x.kind==='رسالة').length+'، الرسومات: '+p.filter(x=>x.kind==='رسمة').length+'، التسجيلات: '+p.filter(x=>x.kind==='صوت').length+')'}function csv(rows){let fields=['stage','role','code','studentName','studentClass','score','date','answers'];return '\\ufeff'+fields.join(',')+'\\r\\n'+rows.map(r=>fields.map(k=>'"'+String(r[k]??'').replace(/"/g,'""')+'"').join(',')).join('\\r\\n')}function download(content,name){let blob=new Blob([content],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),2000)}function parseCSV(s){s=s.replace(/^\\ufeff/,'');let lines=[],row=[],field='',quoted=false;for(let i=0;i<s.length;i++){let c=s[i];if(c==='"'){if(quoted&&s[i+1]==='"'){field+='"';i++}else quoted=!quoted}else if(c===','&&!quoted){row.push(field);field=''}else if((c==='\\n'||c==='\\r')&&!quoted){if(c==='\\r'&&s[i+1]==='\\n')i++;row.push(field);if(row.some(v=>v!==''))lines.push(row);row=[];field=''}else field+=c}row.push(field);if(row.some(v=>v!==''))lines.push(row);if(!lines.length)return [];let head=lines.shift();if(!['stage','score','studentName','studentClass'].every(k=>head.includes(k)))throw Error('أعمدة الملف غير مطابقة');return lines.map(c=>Object.fromEntries(head.map((h,i)=>[h,c[i]||'']))).filter(r=>['pre','post'].includes(r.stage)&&Number.isFinite(Number(r.score))&&Number(r.score)>=0&&Number(r.score)<=15)}$('unlock').onclick=()=>{let pin=$('pin').value.trim();if(pin.length<4){alert('اكتبي رمزًا من أربعة أحرف أو أرقام على الأقل');return}let saved=localStorage.getItem(pinKey);if(saved&&saved!==pin){alert('الرمز غير صحيح');return}if(!saved)localStorage.setItem(pinKey,pin);$('gate').classList.add('hide');$('app').classList.remove('hide');render()};$('filter').oninput=render;$('export').onclick=()=>download(csv(all()),'نتائج_درع_الوطن_المجمعة.csv');$('import').onchange=async e=>{let files=[...e.target.files],added=0;for(let file of files){try{let data=parseCSV(await file.text());imported.push(...data);added+=data.length}catch(err){alert('تعذر استيراد '+file.name+': '+err.message)}}try{localStorage.setItem(mergedKey,JSON.stringify(imported));render();alert('تم استيراد '+added+' سجلًا')}catch(err){alert('تعذر حفظ البيانات؛ مساحة التخزين ممتلئة')}};$('clear').onclick=()=>{if(confirm('حذف الملفات المستوردة والنتائج المحلية من هذا الجهاز؟ لا يمكن التراجع.')){localStorage.removeItem(mergedKey);localStorage.removeItem(assessmentKey);imported=[];render()}};</script></body></html>
+const $=id=>document.getElementById(id),assessmentKey='vatan_assessment_v1',mergedKey='vatan_teacher_imports_v1',pinKey='vatan_teacher_pin_v1';let imported=[];try{imported=JSON.parse(localStorage.getItem(mergedKey)||'[]')}catch(e){};const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));function localRows(){try{return JSON.parse(localStorage.getItem(assessmentKey)||'[]')}catch(e){return []}}function all(){let m=new Map();for(let r of [...localRows(),...imported]){if(!['pre','post'].includes(r.stage))continue;let id=[r.stage,r.studentName||'',r.studentClass||'',r.date||'',r.score].join('::');m.set(id,r)}return [...m.values()]}function grouped(){let map=new Map();for(let r of all()){let id=(r.code||'').trim()? 'code:'+r.code.trim()+'|'+(r.studentClass||''):'name:'+(r.studentName||'').trim()+'|'+(r.studentClass||'').trim()+'|'+(r.role||'');if(!map.has(id))map.set(id,{name:r.studentName||'',cls:r.studentClass||'',role:r.role||'',pre:null,post:null});let g=map.get(id);g[r.stage]=Number(r.score)}return [...map.values()]}function render(){let g=grouped(),pre=g.filter(x=>x.pre!==null),post=g.filter(x=>x.post!==null),paired=g.filter(x=>x.pre!==null&&x.post!==null),avg=a=>a.length?(a.reduce((t,x)=>t+x,0)/a.length).toFixed(1):'—';$('stats').innerHTML=[['المشاركات المسجلة',g.length],['قياسات قبلية',pre.length],['قياسات بعدية',post.length],['حالات مكتملة',paired.length],['متوسط القبلي',avg(pre.map(x=>x.pre))],['متوسط البعدي',avg(post.map(x=>x.post))],['متوسط تغير الحالات المكتملة',avg(paired.map(x=>x.post-x.pre))]].map(x=>'<div class="stat">'+esc(x[0])+'<strong>'+esc(x[1])+'</strong></div>').join('');let term=$('filter').value.trim().toLowerCase();$('rows').innerHTML=g.filter(x=>(x.name+' '+x.cls).toLowerCase().includes(term)).map(x=>'<tr><td>'+esc(x.name)+'</td><td>'+esc(x.cls)+'</td><td>'+esc(x.role)+'</td><td>'+(x.pre??'—')+'</td><td>'+(x.post??'—')+'</td><td>'+(x.pre!==null&&x.post!==null?x.post-x.pre:'—')+'</td><td>'+(x.pre!==null&&x.post!==null?'مكتمل':'غير مكتمل')+'</td></tr>').join('')||'<tr><td colspan="7">لا توجد بيانات بعد.</td></tr>';let p=[];try{p=JSON.parse(localStorage.getItem('shield_vatan_entries_v1')||'[]')}catch(e){}$('participations').textContent='عدد المشاركات على هذا الجهاز: '+p.length+' (الرسائل: '+p.filter(x=>x.kind==='رسالة').length+'، الرسومات: '+p.filter(x=>x.kind==='رسمة').length+'، التسجيلات: '+p.filter(x=>x.kind==='صوت').length+')'}function csv(rows){let fields=['stage','role','code','studentName','studentClass','score','date','answers'];return '\\ufeff'+fields.join(',')+'\\r\\n'+rows.map(r=>fields.map(k=>'"'+String(r[k]??'').replace(/"/g,'""')+'"').join(',')).join('\\r\\n')}function download(content,name){let blob=new Blob([content],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),2000)}function parseCSV(s){s=s.replace(/^\\ufeff/,'');let lines=[],row=[],field='',quoted=false;for(let i=0;i<s.length;i++){let c=s[i];if(c==='"'){if(quoted&&s[i+1]==='"'){field+='"';i++}else quoted=!quoted}else if(c===','&&!quoted){row.push(field);field=''}else if((c==='\\n'||c==='\\r')&&!quoted){if(c==='\\r'&&s[i+1]==='\\n')i++;row.push(field);if(row.some(v=>v!==''))lines.push(row);row=[];field=''}else field+=c}row.push(field);if(row.some(v=>v!==''))lines.push(row);if(!lines.length)return [];let head=lines.shift();if(!['stage','score','studentName','studentClass'].every(k=>head.includes(k)))throw Error('أعمدة الملف غير مطابقة');return lines.map(c=>Object.fromEntries(head.map((h,i)=>[h,c[i]||'']))).filter(r=>['pre','post'].includes(r.stage)&&Number.isFinite(Number(r.score))&&Number(r.score)>=0&&Number(r.score)<=15)}$('unlock').onclick=()=>{let pin=$('pin').value.trim();if(pin.length<4){alert('اكتبي رمزًا من أربعة أحرف أو أرقام على الأقل');return}let saved=localStorage.getItem(pinKey);if(saved&&saved!==pin){alert('الرمز غير صحيح');return}if(!saved)localStorage.setItem(pinKey,pin);$('gate').classList.add('hide');$('app').classList.remove('hide');render()};$('filter').oninput=render;$('export').onclick=()=>download(csv(all()),'نتائج_درع_الوطن_المجمعة.csv');$('import').onchange=async e=>{let files=[...e.target.files],added=0;for(let file of files){try{let data=parseCSV(await file.text());imported.push(...data);added+=data.length}catch(err){alert('تعذر استيراد '+file.name+': '+err.message)}}try{localStorage.setItem(mergedKey,JSON.stringify(imported));render();alert('تم استيراد '+added+' سجلًا')}catch(err){alert('تعذر حفظ البيانات؛ مساحة التخزين ممتلئة')}};$('clear').onclick=()=>{if(confirm('حذف الملفات المستوردة والنتائج المحلية من هذا الجهاز؟ لا يمكن التراجع.')){localStorage.removeItem(mergedKey);localStorage.removeItem(assessmentKey);imported=[];render()}};</script>
+<script>
+const TEACHER_SUPABASE_URL = 'https://stpwlbbfijjyqukirjju.supabase.co';
+const TEACHER_SUPABASE_KEY = 'sb_publishable__fD0Sb2vSH_Qk_61kvP5Jg_S0W6_QDF';
+
+document.getElementById('teacher-login').onclick = async () => {
+  const email = document.getElementById('teacher-email').value.trim();
+  const password = document.getElementById('teacher-password').value;
+  const msg = document.getElementById('teacher-message');
+  msg.textContent = 'جارٍ التحقق من الحساب...';
+
+  try {
+    const response = await fetch(
+      TEACHER_SUPABASE_URL + '/auth/v1/token?grant_type=password',
+      {
+        method: 'POST',
+        headers: {
+          'apikey': TEACHER_SUPABASE_KEY,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({email, password})
+      }
+    );
+    const data = await response.json();
+    if (!response.ok || !data.access_token) {
+      msg.textContent = 'تعذر تسجيل الدخول. تحققي من البريد وكلمة المرور.';
+      return;
+    }
+
+    const check = await fetch(
+      TEACHER_SUPABASE_URL + '/rest/v1/teacher_admins?select=user_id&user_id=eq.' +
+      encodeURIComponent(data.user.id),
+      {
+        headers: {
+          'apikey': TEACHER_SUPABASE_KEY,
+          'Authorization': 'Bearer ' + data.access_token
+        }
+      }
+    );
+    if (!check.ok) throw Error('تعذر التحقق من الصلاحيات');
+    const admins = await check.json();
+    if (!admins.length) {
+      msg.textContent = 'هذا الحساب غير مصرح له بإدارة المشاركات.';
+      return;
+    }
+
+    window.teacherAccessToken = data.access_token;
+    msg.textContent = 'تم تسجيل دخول المعلمة بنجاح';
+    document.getElementById('teacher-logout').classList.remove('hide');
+  } catch (error) {
+    msg.textContent = 'تعذر الاتصال أو التحقق من الصلاحيات.';
+  }
+};
+
+document.getElementById('teacher-logout').onclick = () => {
+  window.teacherAccessToken = null;
+  document.getElementById('teacher-password').value = '';
+  document.getElementById('teacher-message').textContent = 'تم تسجيل الخروج';
+  document.getElementById('teacher-logout').classList.add('hide');
+};
+</script>
+</body></html>
