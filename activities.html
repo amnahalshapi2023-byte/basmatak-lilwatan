@@ -296,3 +296,225 @@ document.getElementById('clearEntry').onclick=()=>{if(confirm('مسح المدخ
 
 
 
+
+
+<!-- NATIONAL_FLIPBOOK_V1 -->
+<style>
+#book{display:none!important}
+#national-book{
+  max-width:740px;margin:16px auto;
+  font-family:Tahoma,Arial,sans-serif;
+}
+#national-book .page{
+  background:#fffdf6;
+  border:2px solid #c9a65b;
+  border-radius:15px;
+  min-height:430px;
+  padding:28px;
+  box-shadow:0 6px 20px #123c2a18;
+  text-align:center;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  gap:16px;
+  overflow-wrap:anywhere;
+}
+#national-book .cover{
+  background:linear-gradient(#06452b99,#06452b99),
+    url('saudi-fingerprint.png') center/cover;
+  color:white;
+  min-height:480px;
+}
+#national-book .cover h2{color:#fff!important;font-size:32px}
+#national-book .page h3{color:#07543b;font-size:24px}
+#national-book .page p{
+  font-size:18px;line-height:2;white-space:pre-wrap;
+}
+#national-book .book-nav{
+  display:flex;justify-content:center;align-items:center;
+  flex-wrap:wrap;gap:12px;margin:15px 0;
+}
+#national-book button{
+  padding:10px 18px;border-radius:10px;
+  cursor:pointer;
+}
+#national-book .toc{
+  width:100%;text-align:right;
+  max-height:340px;overflow:auto;
+}
+#national-book .toc button{
+  display:block;width:100%;margin:6px 0;
+  text-align:right;background:#f2f6ef;color:#07543b;
+  border:1px solid #d8cba9;
+}
+#national-print{display:none}
+@media print{
+  body>*:not(#national-print){display:none!important}
+  #national-print{display:block!important}
+  #national-print .print-page{
+    page-break-after:always;break-after:page;
+    min-height:245mm;padding:20mm;
+    border:2px solid #b69a56;
+    text-align:center;
+    display:flex;flex-direction:column;
+    justify-content:center;
+    font-family:Tahoma,Arial;
+    overflow-wrap:anywhere;
+  }
+  #national-print .print-page:last-child{
+    page-break-after:auto;break-after:auto;
+  }
+  #national-print h1,#national-print h2{color:#07543b}
+  #national-print p{white-space:pre-wrap;line-height:2}
+}
+</style>
+<script>
+(function(){
+  const oldBook=document.getElementById('book');
+  if(!oldBook)return;
+
+  // يمكن تعديل الأسماء هنا لاحقًا
+  const bookSettings={
+    teachers:'',
+    principal:'',
+    dedication:'إلى وطننا الغالي، وإلى حماة أمنه وحدوده، نهدي هذه الكلمات الصادقة التي تعبّر عن حب طالباتنا واعتزازهن بوطنهن.'
+  };
+
+  const root=document.createElement('div');
+  root.id='national-book';
+  oldBook.after(root);
+
+  const printRoot=document.createElement('div');
+  printRoot.id='national-print';
+  document.body.appendChild(printRoot);
+
+  let pages=[],index=0;
+
+  function addPage(title,body,type='normal'){
+    pages.push({title,body,type});
+  }
+
+  function render(){
+    root.replaceChildren();
+
+    const page=document.createElement('div');
+    page.className='page'+(pages[index].type==='cover'?' cover':'');
+
+    const title=document.createElement('h2');
+    title.textContent=pages[index].title;
+    page.appendChild(title);
+
+    if(pages[index].type==='toc'){
+      const toc=document.createElement('div');
+      toc.className='toc';
+      pages.slice(3).forEach((item,i)=>{
+        const b=document.createElement('button');
+        b.type='button';
+        b.textContent=(i+1)+' — '+item.title;
+        b.onclick=()=>{index=i+3;render()};
+        toc.appendChild(b);
+      });
+      page.appendChild(toc);
+    }else{
+      const text=document.createElement('p');
+      text.textContent=pages[index].body;
+      page.appendChild(text);
+    }
+
+    root.appendChild(page);
+
+    const nav=document.createElement('div');
+    nav.className='book-nav';
+
+    const previous=document.createElement('button');
+    previous.textContent='→ السابقة';
+    previous.disabled=index===0;
+    previous.onclick=()=>{index--;render()};
+
+    const count=document.createElement('span');
+    count.textContent=(index+1)+' / '+pages.length;
+
+    const next=document.createElement('button');
+    next.textContent='التالية ←';
+    next.disabled=index===pages.length-1;
+    next.onclick=()=>{index++;render()};
+
+    const save=document.createElement('button');
+    save.textContent='📥 حفظ PDF';
+    save.onclick=()=>{
+      buildPrint();
+      window.print();
+    };
+
+    nav.append(previous,count,next,save);
+    root.appendChild(nav);
+  }
+
+  function buildPrint(){
+    printRoot.replaceChildren();
+    pages.forEach((item,i)=>{
+      const section=document.createElement('section');
+      section.className='print-page';
+      const h=document.createElement('h2');
+      h.textContent=item.title;
+      const p=document.createElement('p');
+      p.textContent=item.type==='toc'
+        ? pages.slice(3).map((x,j)=>(j+1)+' — '+x.title).join('\n')
+        : item.body;
+      section.append(h,p);
+      printRoot.appendChild(section);
+    });
+  }
+
+  async function loadApprovedBook(){
+    root.textContent='جارٍ تحميل كتاب درع الوطن...';
+    try{
+      const response=await fetch(
+        SUPABASE_URL+
+        '/rest/v1/student_messages?select=student_name,message,created_at'+
+        '&status=eq.approved&order=created_at.asc&limit=1000',
+        {headers:{apikey:SUPABASE_KEY}}
+      );
+      if(!response.ok)throw Error('تعذر جلب المشاركات');
+      const messages=await response.json();
+
+      pages=[];
+      addPage(
+        '🇸🇦 درع الوطن',
+        'بصمتك للوطن\nرسائل وفاء إلى حماة الوطن\n'+
+        (bookSettings.teachers?'إعداد: '+bookSettings.teachers+'\n':'')+
+        (bookSettings.principal?'مديرة المدرسة: '+bookSettings.principal:''),
+        'cover'
+      );
+      addPage('إهداء',bookSettings.dedication);
+      addPage('فهرس المشاركات','', 'toc');
+
+      messages.forEach((m,i)=>{
+        const content=(m.message||'').trim();
+        if(!content)return;
+        const title='رسالة وطنية '+(i+1);
+        const author=(m.student_name||'طالبة من مدرستنا').trim();
+        addPage(title,content+'\n\nبقلم: '+author);
+      });
+
+      if(pages.length===3)
+        addPage('مشاركاتنا القادمة',
+          'لم تُعتمد مشاركات للكتاب بعد.\nستظهر هنا بعد اعتماد المعلمة لها.');
+
+      index=0;
+      render();
+    }catch(error){
+      root.textContent='تعذر تحميل الكتاب حاليًا. حاولي تحديث الصفحة.';
+    }
+  }
+
+  const bookList=document.getElementById('student-book-list');
+  if(bookList){
+    bookList.addEventListener('toggle',()=>{
+      if(bookList.open)loadApprovedBook();
+    });
+  }
+  loadApprovedBook();
+})();
+</script>
