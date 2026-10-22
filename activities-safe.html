@@ -1,0 +1,921 @@
+<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>درع الوطن | بصمتك للوطن</title><style>
+:root{--g:#074a34;--gold:#c8a657;--cream:#fffaf0}*{box-sizing:border-box}body{margin:0;background:#f5f2e9;color:#173e30;font-family:Tahoma,Arial,sans-serif}header{background:linear-gradient(145deg,#063c2b,#0a6646);color:#fff;text-align:center;padding:35px 14px;border-bottom:7px solid var(--gold)}header h1{font-size:clamp(30px,7vw,56px);margin:10px}header p{color:#f3deb0}.wrap{max-width:900px;margin:auto;padding:18px}.panel{background:white;border:1px solid #e5d6a8;border-radius:20px;padding:22px;margin:18px 0;box-shadow:0 6px 20px #163c2910}h2{color:var(--g)}.choices{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.choice{min-height:115px;border:2px solid #d8c48c;border-radius:16px;background:#faf6e9;font-size:21px;font-weight:bold;color:#184833;cursor:pointer}.choice.active{background:#e5f0e6;border-color:#07633d}button,.btn{cursor:pointer;border:0;border-radius:12px;background:var(--g);color:#fff;padding:14px 20px;font-size:17px}button.secondary{background:#b18b3c;color:#fff}button:disabled{opacity:.45}input,select,textarea{font:inherit;border:1px solid #d4c59f;border-radius:12px;padding:13px;width:100%;margin:9px 0;background:#fffdf8}textarea{min-height:125px;resize:vertical}.hide{display:none}.note{color:#806c48;font-size:14px}.actions{display:flex;gap:10px;flex-wrap:wrap}canvas{width:100%;height:250px;touch-action:none;border:2px solid #d8c48c;border-radius:14px;background:white}.shield{margin:12px auto;font-size:80px;text-align:center}.progress{height:20px;border-radius:20px;background:#eee6d3;overflow:hidden}.fill{height:100%;width:0;background:linear-gradient(90deg,#17754c,#c8a657);transition:width .4s}.certificate{text-align:center;border:4px double #b89646;padding:25px;border-radius:20px;background:linear-gradient(#fffdf6,#f7efd6)}.num{font-size:38px;color:#a57c2e;font-weight:bold}.stat{display:inline-block;background:#f7f0db;padding:16px;margin:5px;border-radius:12px}.footer{text-align:center;padding:20px;color:#667}#recordStatus{font-weight:bold} @media(max-width:500px){.choices{gap:8px}.choice{font-size:17px;min-height:100px}.panel{padding:15px}}@media print{header,.no-print,#entry,#reportActions{display:none!important}body{background:white}.panel{box-shadow:none;break-inside:avoid}}
+</style>
+<style>
+/* STUDENT_LAYOUT_REFRESH_V1 */
+body{
+  background:#f5f6f2;
+  color:#174a38;
+  line-height:1.65;
+}
+header{
+  padding:22px 15px!important;
+  text-align:center;
+  background:linear-gradient(135deg,#064832,#08704d)!important;
+  color:white!important;
+}
+header h1{
+  margin:5px 0!important;
+  font-size:clamp(25px,5vw,35px)!important;
+}
+header p{
+  margin:5px auto!important;
+  max-width:550px;
+}
+main{
+  max-width:760px!important;
+  margin:0 auto!important;
+  padding:12px!important;
+}
+.panel{
+  max-width:100%!important;
+  margin:12px auto!important;
+  padding:20px!important;
+  background:white;
+  border-radius:18px!important;
+  box-shadow:0 4px 16px rgba(12,73,48,.07);
+}
+.panel h2{
+  color:#07543b;
+  font-size:clamp(18px,3vw,23px);
+  margin:0 0 12px;
+}
+#entry{
+  border:2px solid #d8b76c!important;
+  background:#fffefa;
+}
+#entry label{
+  display:block;
+  margin:10px 0 5px;
+  font-weight:bold;
+}
+#entry input,
+#entry textarea,
+#entry select{
+  width:100%!important;
+  max-width:100%!important;
+  box-sizing:border-box;
+  border-radius:10px!important;
+  padding:12px!important;
+  font-size:16px!important;
+}
+#entry textarea{
+  min-height:125px;
+  resize:vertical;
+}
+button{
+  border-radius:11px!important;
+  min-height:40px;
+}
+.actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:9px;
+  align-items:center;
+}
+.actions button{
+  flex:1 1 auto;
+}
+#success{
+  border:2px solid #d8b76c;
+  background:#fffaf0;
+}
+.certificate{
+  max-width:100%;
+  border-radius:16px;
+}
+#book{
+  overflow-wrap:anywhere;
+}
+#shieldIcon{
+  margin:12px auto;
+}
+@media(max-width:600px){
+  main{padding:9px!important}
+  .panel{
+    padding:15px!important;
+    margin:10px auto!important;
+    border-radius:15px!important;
+  }
+  header{padding:17px 12px!important}
+  .actions{gap:7px}
+  button{font-size:14px}
+}
+</style>
+
+
+</head><body>
+<header><div style="font-size:48px">🇸🇦</div><h1>درع الوطن</h1><p>بصمتك للوطن • رسائل وفاء ودعاء لحماة الوطن</p></header><main class="wrap">
+<section class="panel no-print" id="student-choices"><h2>💌 شاركي في درع الوطن</h2><p>اختاري نوع مشاركتك، ثم أرسلي رسالة محبة وفخر إلى المرابطين على الحد.</p><div class="choices"><button class="choice active" data-kind="رسالة">💌<br>رسالة</button><button class="choice" data-kind="بطاقة جاهزة">🏅<br>بطاقة جاهزة</button><button class="choice" data-kind="رسمة">🎨<br>رسمة</button><button class="choice" data-kind="صوت">🎙️<br>صوت</button></div></section>
+<section id="entry" class="panel"><h2 id="kindTitle">✍️ رسالتك للمرابطين</h2><label>إلى</label><select id="to"><option>المرابطون على الحد (عام)</option><option>جنودنا البواسل</option><option>حماة الوطن</option></select>
+<div id="messageBox"><textarea id="message" maxlength="600" placeholder="أبطالنا على الحد... أنتم فخرنا، ودعاؤنا معكم دائمًا."></textarea></div>
+<div id="readyBox" class="hide"><select id="ready"><option>أنتم درع الوطن وعزّه، حفظكم الله ورعاكم.</option><option>يا حماة الوطن، قلوبنا معكم ودعواتنا ترافقكم.</option><option>شكرًا لمن يسهر لأجل أمن وطننا، دمتم فخرًا لنا.</option></select></div>
+<div id="drawBox" class="hide"><p>ارسمي لوحة وطنية بإصبعك أو بالقلم، أو أرفقي صورة رسمتك.</p><label>إرفاق صورة (اختياري)</label><input type="file" id="imageUpload" accept="image/*"><img id="imagePreview" class="hide" alt="معاينة الصورة" style="width:100%;max-height:240px;object-fit:contain"><canvas id="draw" width="800" height="400"></canvas><div class="actions"><button class="secondary" id="clearDraw">مسح الرسمة</button></div></div>
+<div id="audioBox" class="hide"><p>اضغطي «بدء التسجيل» واسمحي للمتصفح باستخدام الميكروفون.</p><div class="actions"><button id="startRec">🎙️ بدء التسجيل</button><button id="stopRec" disabled>⏹ إيقاف التسجيل</button></div><p id="recordStatus">لم يبدأ التسجيل</p><audio id="playback" controls class="hide" style="width:100%"></audio><p class="note">بعد تفعيل الربط السحابي، يُرفع التسجيل للمراجعة لدى المعلمة. احتفظي بنسخة منه احتياطًا.</p><button id="saveAudio" class="secondary hide">تنزيل التسجيل الصوتي</button></div>
+<label>اسم المشاركة (اختياري)</label><input id="student" maxlength="60" placeholder="مثال: طالبة من مدرستنا"><button type="button" id="clearEntry" style="background:#a04435">🗑️ حذف</button><button type="button" onclick="location.href='index.html'" style="background:#a88a44">↩️ رجوع</button><button id="submit">إرسال المشاركة</button><p class="note">تنبيه: لا تُعتبر المشاركة محفوظة مركزيًا إلا بعد تفعيل خدمة Google Apps Script وتأكيدها في جدول المعلمة. لا تظهر المشاركات للزائرات تلقائيًا. التسجيلات والصور بحد أقصى 1.5 ميجابايت.</p></section>
+<section id="success" class="panel hide"><div class="certificate"><div class="shield"><svg viewBox="0 0 100 120" width="90" height="108" role="img" aria-label="درع ذهبي" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff0a5"/><stop offset=".45" stop-color="#e5bb4d"/><stop offset="1" stop-color="#956319"/></linearGradient></defs><path d="M50 5 L91 19 L86 72 Q75 97 50 113 Q25 97 14 72 L9 19 Z" fill="url(#gold)" stroke="#8c611c" stroke-width="4"/><path d="M50 15 L80 26 L76 68 Q68 87 50 100 Q32 87 24 68 L20 26 Z" fill="none" stroke="#fff1ad" stroke-width="3"/><path d="M50 35 L56 48 L71 50 L60 61 L63 77 L50 69 L37 77 L40 61 L29 50 L44 48 Z" fill="#fff4c1"/></svg></div><h2>أنتِ حارسة الدرع</h2><div class="num" id="badgeNumber">1</div><p>حُفظت نسخة محلية من مشاركتك على هذا الجهاز. تحققي من وصولها لجدول المعلمة.</p><p id="badgeName"></p><div class="actions no-print" style="justify-content:center"><button id="downloadCard">⬇️ بطاقتي</button><button class="secondary" id="again">مشاركة جديدة</button></div></div></section>
+<section class="panel"><h2>🛡️ درع مدرستنا</h2><p>كل مشاركة = قطعة تضيء ✨</p><div class="shield" id="shieldIcon"><svg viewBox="0 0 100 120" width="90" height="108" role="img" aria-label="درع ذهبي" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff0a5"/><stop offset=".45" stop-color="#e5bb4d"/><stop offset="1" stop-color="#956319"/></linearGradient></defs><path d="M50 5 L91 19 L86 72 Q75 97 50 113 Q25 97 14 72 L9 19 Z" fill="url(#gold)" stroke="#8c611c" stroke-width="4"/><path d="M50 15 L80 26 L76 68 Q68 87 50 100 Q32 87 24 68 L20 26 Z" fill="none" stroke="#fff1ad" stroke-width="3"/><path d="M50 35 L56 48 L71 50 L60 61 L63 77 L50 69 L37 77 L40 61 L29 50 L44 48 Z" fill="#fff4c1"/></svg></div><div class="progress"><div class="fill" id="bar"></div></div><p id="progressText">0 من 50 مشاركة لاكتمال الدرع</p><p class="note">يُحتسب التقدم هنا من المشاركات المسجلة على هذا الجهاز فقط.</p></section>
+<section class="panel"><h2>📚 كتاب درع الوطن</h2><p>كتاب تفاعلي يضم مشاركات الطالبات المعتمدة</p><div id="book"></div><div class="actions no-print"><button onclick="window.print()">🖨️ طباعة الكتاب PDF</button></div></section>
+
+</main><div class="footer">🇸🇦 درع الوطن • حب ووفاء ودعاء</div>
+<script>
+const $=id=>document.getElementById(id),key='shield_vatan_entries_v1';let entries=[];try{entries=JSON.parse(localStorage.getItem(key)||'[]')}catch(e){}let kind='رسالة',audioBlob=null,recorder=null,parts=[];const boxMap={'رسالة':'messageBox','بطاقة جاهزة':'readyBox','رسمة':'drawBox','صوت':'audioBox'};document.querySelectorAll('.choice').forEach(b=>b.addEventListener('click',()=>{kind=b.dataset.kind;document.querySelectorAll('.choice').forEach(x=>x.classList.toggle('active',x===b));Object.values(boxMap).forEach(id=>$(id).classList.add('hide'));$(boxMap[kind]).classList.remove('hide');$('kindTitle').textContent={'رسالة':'✍️ اكتبي رسالتك','بطاقة جاهزة':'🏅 اختاري بطاقة جاهزة','رسمة':'🎨 ارسمي للوطن','صوت':'🎙️ سجلي رسالة صوتية'}[kind]}));
+const canvas=$('draw'),ctx=canvas.getContext('2d');ctx.strokeStyle='#07613f';ctx.lineWidth=6;ctx.lineCap='round';let drawing=false;function pos(e){let r=canvas.getBoundingClientRect();return [(e.clientX-r.left)*canvas.width/r.width,(e.clientY-r.top)*canvas.height/r.height]}canvas.addEventListener('pointerdown',e=>{drawing=true;canvas.setPointerCapture(e.pointerId);ctx.beginPath();ctx.moveTo(...pos(e))});canvas.addEventListener('pointermove',e=>{if(drawing){ctx.lineTo(...pos(e));ctx.stroke()}});canvas.addEventListener('pointerup',()=>drawing=false);$('clearDraw').onclick=()=>ctx.clearRect(0,0,canvas.width,canvas.height);let attachedImage=null;$('imageUpload').addEventListener('change',e=>{let file=e.target.files[0];if(!file)return;if(file.size>1.5*1024*1024){alert('اختاري صورة أقل من 1.5 ميجابايت');e.target.value='';return}let r=new FileReader();r.onload=()=>{attachedImage=r.result;$('imagePreview').src=attachedImage;$('imagePreview').classList.remove('hide')};r.readAsDataURL(file)});
+$('startRec').onclick=async()=>{try{let stream=await navigator.mediaDevices.getUserMedia({audio:true});parts=[];recorder=new MediaRecorder(stream);recorder.ondataavailable=e=>{if(e.data.size)parts.push(e.data)};recorder.onstop=()=>{audioBlob=new Blob(parts,{type:recorder.mimeType||'audio/webm'});$('playback').src=URL.createObjectURL(audioBlob);$('playback').classList.remove('hide');$('saveAudio').classList.remove('hide');stream.getTracks().forEach(t=>t.stop());$('recordStatus').textContent='تم التسجيل ✓'};recorder.start();$('recordStatus').textContent='جاري التسجيل...';$('startRec').disabled=true;$('stopRec').disabled=false}catch(e){alert('تعذر استخدام الميكروفون. افتحي الموقع عبر HTTPS واسمحي بالوصول للميكروفون.')}};$('stopRec').onclick=()=>{if(recorder?.state==='recording')recorder.stop();$('startRec').disabled=false;$('stopRec').disabled=true};function download(url,name){let a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove()}$('saveAudio').onclick=()=>{if(audioBlob)download(URL.createObjectURL(audioBlob),'رسالة_درع_الوطن.webm')};
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}function render(){let n=entries.length;$('bar').style.width=Math.min(100,n/50*100)+'%';$('progressText').textContent=n+' من 50 مشاركة لاكتمال الدرع';let texts=entries.filter(e=>e.text);$('book').innerHTML=texts.length?texts.map(e=>'<div class="panel"><b>'+escapeHtml(e.name||'مشاركة')+' — '+escapeHtml(e.to)+'</b><p>'+escapeHtml(e.text)+'</p></div>').join(''):'<p class="note">لا توجد رسائل محفوظة بعد.</p>';}render();
+const SUPABASE_URL='https://stpwlbbfijjyqukirjju.supabase.co';
+const SUPABASE_KEY='sb_publishable__fD0Sb2vSH_Qk_61kvP5Jg_S0W6_QDF';
+const blobAsDataURL=blob=>new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=reject;reader.readAsDataURL(blob)});
+$('submit').onclick=async()=>{
+ const value=kind==='رسالة'?$('message').value.trim():kind==='بطاقة جاهزة'?$('ready').value:kind==='رسمة'?'رسمة وطنية':'رسالة صوتية';
+ if(kind==='رسالة'&&!value){alert('اكتبي رسالتك أولًا');return}
+ if(kind==='صوت'&&!audioBlob){alert('سجلي رسالة صوتية أولًا');return}
+ if(kind==='رسمة'||kind==='صوت'){alert('حفظ الرسومات والتسجيلات غير مفعّل بعد. اختاري رسالة نصية أو بطاقة جاهزة لإرسال مشاركة محفوظة في الجدول.');return}
+ let media='';
+ if(kind==='رسمة')media=attachedImage||canvas.toDataURL('image/png');
+ if(kind==='صوت'){
+  if(audioBlob.size>1.5*1024*1024){alert('التسجيل كبير جدًا؛ أعيدي تسجيل رسالة أقصر (حتى 1.5 ميجابايت).');return}
+  media=await blobAsDataURL(audioBlob);
+ }
+ if(media.length>2.1*1024*1024){alert('الصورة أو التسجيل كبير جدًا؛ اختاري ملفًا أصغر.');return}
+ const sendButton=$('submit');sendButton.disabled=true;sendButton.textContent='جارٍ رفع المشاركة...';
+ let identity=null;try{identity=JSON.parse(sessionStorage.getItem('vatan_identity')||'null')}catch(e){}
+ const sender=$('student').value.trim()||identity?.name||'مشاركة زائرة';
+ const payload={name:sender,message:value,kind,to:$('to').value,media};
+
+ try{
+  const response=await fetch(
+   SUPABASE_URL+'/rest/v1/student_messages',
+   {
+    method:'POST',
+    headers:{
+     'apikey':SUPABASE_KEY,
+     'Content-Type':'application/json',
+     'Prefer':'return=minimal'
+    },
+    body:JSON.stringify({
+     student_name:sender,
+     message:value,
+     status:'pending'
+    })
+   }
+  );
+  if(!response.ok)throw new Error(await response.text());
+ }catch(err){
+  alert('لم تُحفظ المشاركة في قاعدة البيانات. حاولي مجددًا.');
+  console.error(err);
+  sendButton.disabled=false;
+  sendButton.textContent='إرسال المشاركة';
+  return;
+ }
+
+ const e={participantName:identity?.name||'مشاركة زائرة',participantClass:'',kind,text:kind==='رسمة'||kind==='صوت'?'':value,name:sender,to:$('to').value,date:new Date().toLocaleDateString('ar-SA')};
+ // Keep a lightweight local copy; only text is submitted to the Google Sheet.
+ entries.push(e);
+ try{localStorage.setItem(key,JSON.stringify(entries))}catch(err){entries.pop()}
+ $('badgeNumber').textContent=entries.length;$('badgeName').textContent=sender;
+ $('success').classList.remove('hide');$('success').scrollIntoView({behavior:'smooth'});render();
+ alert('تم حفظ مشاركتك بنجاح، وهي بانتظار مراجعة المعلمة.');
+ sendButton.disabled=false;sendButton.textContent='إرسال المشاركة';
+};$('again').onclick=()=>{$('success').classList.add('hide');$('entry').scrollIntoView({behavior:'smooth'})};
+$('downloadCard').onclick=()=>{let c=document.createElement('canvas');c.width=1000;c.height=650;let x=c.getContext('2d');x.fillStyle='#faf4e2';x.fillRect(0,0,1000,650);x.strokeStyle='#b8974b';x.lineWidth=15;x.strokeRect(22,22,956,606);x.textAlign='center';x.fillStyle='#07503a';x.font='bold 74px Tahoma';x.fillText('درع الوطن',500,155);x.font='100px Tahoma';x.fillText('★',500,290);x.font='bold 47px Tahoma';x.fillText('أنتِ حارسة الدرع',500,395);x.fillText('رقم '+entries.length,500,485);x.font='28px Tahoma';x.fillText('بصمتك للوطن • شكرًا لمشاركتك',500,560);download(c.toDataURL('image/png'),'بطاقة_درع_الوطن.png')};
+document.getElementById('clearEntry').onclick=()=>{if(confirm('مسح المدخلات الحالية؟')){document.getElementById('message').value='';document.getElementById('student').value='';ctx.clearRect(0,0,canvas.width,canvas.height);audioBlob=null;document.getElementById('playback').classList.add('hide')}};</script></body></html>
+
+<!-- STUDENT_PAGE_NAV_V1 -->
+<style>
+#entry.student-nav-hidden,
+#success.student-nav-hidden,
+.student-nav-hidden {
+  display:none!important;
+}
+#student-back {
+  display:block;
+  margin:0 0 16px auto;
+  background:#f4eee1;
+  color:#07543b;
+  border:1px solid #d9b96e;
+  border-radius:10px;
+  padding:10px 18px;
+  cursor:pointer;
+}
+#student-choices.student-nav-hidden{display:none!important}
+#school-participations {
+  max-width:900px;
+  margin:15px auto;
+}
+#school-participations summary {
+  cursor:pointer;
+  background:#fff;
+  color:#07543b;
+  padding:18px;
+  border:1px solid #d9b96e;
+  border-radius:14px;
+  font-weight:bold;
+  font-size:18px;
+}
+#school-participations[open] summary{
+  margin-bottom:12px;
+}
+</style>
+<script>
+(function(){
+  const choices=document.getElementById('student-choices');
+  const entry=document.getElementById('entry');
+  const success=document.getElementById('success');
+  const book=document.getElementById('book');
+  const shield=document.getElementById('shieldIcon');
+
+  if(!choices||!entry)return;
+
+  const participationPanels=[];
+  [shield,book].forEach(el=>{
+    const panel=el&&el.closest('section');
+    if(panel&&!participationPanels.includes(panel))
+      participationPanels.push(panel);
+  });
+
+  const wrapper=document.createElement('details');
+  wrapper.id='school-participations';
+  const summary=document.createElement('summary');
+  summary.textContent='🛡️ مشاركات مدرستنا — اضغطي للعرض';
+  wrapper.appendChild(summary);
+
+  if(participationPanels.length){
+    participationPanels[0].before(wrapper);
+    participationPanels.forEach(panel=>wrapper.appendChild(panel));
+  }
+
+  const back=document.createElement('button');
+  back.id='student-back';
+  back.type='button';
+  back.textContent='↩ الرجوع إلى أنواع المشاركة';
+  entry.prepend(back);
+
+  function home(){
+    choices.classList.remove('student-nav-hidden');
+    entry.classList.add('student-nav-hidden');
+    if(success)success.classList.add('student-nav-hidden');
+    back.hidden=true;
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+
+  function openEntry(){
+    choices.classList.add('student-nav-hidden');
+    entry.classList.remove('student-nav-hidden');
+    back.hidden=false;
+    entry.scrollIntoView({behavior:'smooth',block:'start'});
+  }
+
+  back.addEventListener('click',home);
+
+  const buttons=Array.from(choices.querySelectorAll('button'));
+  buttons.forEach(button=>{
+    button.addEventListener('click',()=>{
+      setTimeout(openEntry,0);
+    });
+  });
+
+  if(success){
+    const observer=new MutationObserver(()=>{
+      if(!success.classList.contains('hide')){
+        choices.classList.add('student-nav-hidden');
+        entry.classList.add('student-nav-hidden');
+        success.classList.remove('student-nav-hidden');
+      }
+    });
+    observer.observe(success,{attributes:true,attributeFilter:['class']});
+  }
+
+  home();
+})();
+</script>
+
+
+
+
+
+
+
+
+
+<!-- NATIONAL_FLIPBOOK_V1 -->
+<style>
+#book{display:none!important}
+#national-book{
+  max-width:740px;margin:16px auto;
+  font-family:Tahoma,Arial,sans-serif;
+}
+#national-book .page{
+  background:#fffdf6;
+  border:2px solid #c9a65b;
+  border-radius:15px;
+  min-height:430px;
+  padding:28px;
+  box-shadow:0 6px 20px #123c2a18;
+  text-align:center;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  gap:16px;
+  overflow-wrap:anywhere;
+}
+#national-book .cover{
+  background:linear-gradient(#06452b99,#06452b99),
+    url('saudi-fingerprint.png') center/cover;
+  color:white;
+  min-height:480px;
+}
+#national-book .cover h2{color:#fff!important;font-size:32px}
+#national-book .page h3{color:#07543b;font-size:24px}
+#national-book .page p{
+  font-size:18px;line-height:2;white-space:pre-wrap;
+}
+#national-book .book-nav{
+  display:flex;justify-content:center;align-items:center;
+  flex-wrap:wrap;gap:12px;margin:15px 0;
+}
+#national-book button{
+  padding:10px 18px;border-radius:10px;
+  cursor:pointer;
+}
+#national-book .toc{
+  width:100%;text-align:right;
+  max-height:340px;overflow:auto;
+}
+#national-book .toc button{
+  display:block;width:100%;margin:6px 0;
+  text-align:right;background:#f2f6ef;color:#07543b;
+  border:1px solid #d8cba9;
+}
+#national-print{display:none}
+@media print{
+  body>*:not(#national-print){display:none!important}
+  #national-print{display:block!important}
+  #national-print .print-page{
+    page-break-after:always;break-after:page;
+    min-height:245mm;padding:20mm;
+    border:2px solid #b69a56;
+    text-align:center;
+    display:flex;flex-direction:column;
+    justify-content:center;
+    font-family:Tahoma,Arial;
+    overflow-wrap:anywhere;
+  }
+  #national-print .print-page:last-child{
+    page-break-after:auto;break-after:auto;
+  }
+  #national-print h1,#national-print h2{color:#07543b}
+  #national-print p{white-space:pre-wrap;line-height:2}
+}
+</style>
+<script>
+(function(){
+  const oldBook=document.getElementById('book');
+  if(!oldBook)return;
+
+  // يمكن تعديل الأسماء هنا لاحقًا
+  const bookSettings={
+    teachers:'',
+    principal:'',
+    dedication:'إلى وطننا الغالي، وإلى حماة أمنه وحدوده، نهدي هذه الكلمات الصادقة التي تعبّر عن حب طالباتنا واعتزازهن بوطنهن.'
+  };
+
+  const root=document.createElement('div');
+  root.id='national-book';
+  oldBook.after(root);
+
+  const printRoot=document.createElement('div');
+  printRoot.id='national-print';
+  document.body.appendChild(printRoot);
+
+  let pages=[],index=0;
+
+  function addPage(title,body,type='normal'){
+    pages.push({title,body,type});
+  }
+
+  // BOOK_PAGE_FLIP_V1
+
+  // BOOK_SPREAD_V1
+  let flipBusy=false;
+
+  function makeBookPage(item,pageNumber){
+    const page=document.createElement('div');
+    page.className='page'+(item.type==='cover'?' cover':'');
+
+    const title=document.createElement('h2');
+    title.textContent=item.title;
+    page.appendChild(title);
+
+    if(item.type==='toc'){
+      const toc=document.createElement('div');
+      toc.className='toc';
+      pages.slice(3).forEach((entry,i)=>{
+        const button=document.createElement('button');
+        button.type='button';
+        button.textContent=(i+1)+' — '+entry.title;
+        button.onclick=()=>turnPage(i+3);
+        toc.appendChild(button);
+      });
+      page.appendChild(toc);
+    }else{
+      const body=document.createElement('p');
+      body.textContent=item.body;
+      page.appendChild(body);
+    }
+    return page;
+  }
+
+  function spreadStart(i){
+    return i===0?0:1+2*Math.floor((i-1)/2);
+  }
+
+  function turnPage(target){
+    if(flipBusy || target<0 || target>=pages.length)return;
+    const destination=spreadStart(target);
+    if(destination===index)return;
+
+    flipBusy=true;
+    const book=root.querySelector('.book-spread');
+    if(book){
+      book.classList.add(destination>index?'turn-forward':'turn-backward');
+    }
+    setTimeout(()=>{
+      index=destination;
+      render();
+      flipBusy=false;
+    },520);
+  }
+
+  function render(){
+    root.replaceChildren();
+    if(!pages.length)return;
+
+    const spread=document.createElement('div');
+    spread.className='book-spread';
+
+    if(index===0){
+      spread.classList.add('cover-spread');
+      spread.appendChild(makeBookPage(pages[0],0));
+    }else{
+      const right=makeBookPage(pages[index],index);
+      const left=index+1<pages.length
+        ?makeBookPage(pages[index+1],index+1)
+        :document.createElement('div');
+      if(index+1>=pages.length)left.className='page blank-page';
+      spread.append(right,left);
+    }
+    root.appendChild(spread);
+
+    const nav=document.createElement('div');
+    nav.className='book-nav';
+
+    const previous=document.createElement('button');
+    previous.textContent='→ السابقة';
+    previous.disabled=index===0;
+    previous.onclick=()=>turnPage(index===1?0:index-2);
+
+    const count=document.createElement('span');
+    count.textContent=index===0
+      ?'الغلاف'
+      :(index+1)+' – '+Math.min(index+2,pages.length)+' / '+pages.length;
+
+    const next=document.createElement('button');
+    next.textContent='التالية ←';
+    next.disabled=index===spreadStart(pages.length-1);
+    next.onclick=()=>turnPage(index===0?1:index+2);
+
+    const save=document.createElement('button');
+    save.textContent='📥 حفظ PDF';
+    save.onclick=()=>{
+      buildPrint();
+      window.print();
+    };
+
+    nav.append(previous,count,next,save);
+    root.appendChild(nav);
+  }
+
+  let touchStartX=0;
+  root.addEventListener('touchstart',e=>{
+    touchStartX=e.changedTouches[0].screenX;
+  },{passive:true});
+  root.addEventListener('touchend',e=>{
+    if(e.target.closest('button'))return;
+    const dx=e.changedTouches[0].screenX-touchStartX;
+    if(Math.abs(dx)<65)return;
+    if(dx>0)turnPage(index===0?1:index+2);
+    else turnPage(index===1?0:index-2);
+  },{passive:true});
+
+
+  // BOOK_PRINT_PDF_V2
+  function buildPrint(){
+    printRoot.replaceChildren();
+
+    pages.forEach((item, i)=>{
+      const section=document.createElement('section');
+      section.className='print-page';
+
+      if(item.type==='cover'){
+        section.classList.add('print-cover');
+        const img=document.createElement('img');
+        img.src='book-cover.png';
+        img.alt='غلاف درع الوطن';
+        section.appendChild(img);
+      }else{
+        const heading=document.createElement('h2');
+        heading.textContent=item.title;
+
+        const paragraph=document.createElement('p');
+        paragraph.textContent=item.type==='toc'
+          ? pages.slice(3).map((x,j)=>
+              (j+1)+' — '+x.title).join(String.fromCharCode(10))
+          : item.body;
+
+        const ornament=document.createElement('div');
+        ornament.className='print-ornament';
+        ornament.textContent='✦';
+
+        section.append(ornament,heading,paragraph);
+
+        const footer=document.createElement('small');
+        footer.textContent='درع الوطن  •  '+(i+1);
+        section.appendChild(footer);
+      }
+
+      printRoot.appendChild(section);
+    });
+  }
+
+  async function loadApprovedBook(){
+    root.textContent='جارٍ تحميل كتاب درع الوطن...';
+    try{
+      const response=await fetch(
+        SUPABASE_URL+
+        '/rest/v1/student_messages?select=student_name,message,created_at'+
+        '&status=eq.approved&order=created_at.asc&limit=1000',
+        {headers:{apikey:SUPABASE_KEY}}
+      );
+      if(!response.ok)throw Error('تعذر جلب المشاركات');
+      const messages=await response.json();
+
+      pages=[];
+      addPage(
+        '🇸🇦 درع الوطن',
+        'بصمتك للوطن\nرسائل وفاء إلى حماة الوطن\n'+
+        (bookSettings.teachers?'إعداد: '+bookSettings.teachers+'\n':'')+
+        (bookSettings.principal?'مديرة المدرسة: '+bookSettings.principal:''),
+        'cover'
+      );
+      addPage('إهداء',bookSettings.dedication);
+      addPage('فهرس المشاركات','', 'toc');
+
+      messages.forEach((m,i)=>{
+        const content=(m.message||'').trim();
+        if(!content)return;
+        const firstLine=content.split(/[\n.!؟]/)[0].trim();
+        const title=firstLine.length>38
+          ? firstLine.slice(0,38)+'…'
+          : (firstLine || 'رسالة وطنية '+(i+1));
+        const author=(m.student_name||'طالبة من مدرستنا').trim();
+        addPage(title,content+'\n\nبقلم: '+author);
+      });
+
+      if(pages.length===3)
+        addPage('مشاركاتنا القادمة',
+          'لم تُعتمد مشاركات للكتاب بعد.\nستظهر هنا بعد اعتماد المعلمة لها.');
+
+      index=0;
+      render();
+    }catch(error){
+      root.textContent='تعذر تحميل الكتاب حاليًا. حاولي تحديث الصفحة.';
+    }
+  }
+
+  const bookList=document.getElementById('student-book-list');
+  if(bookList){
+    bookList.addEventListener('toggle',()=>{
+      if(bookList.open)loadApprovedBook();
+    });
+  }
+  loadApprovedBook();
+})();
+</script>
+
+
+
+
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+  const oldBook=document.getElementById('book');
+  if(!oldBook)return;
+  const panel=oldBook.closest('section.panel');
+  if(!panel)return;
+
+  panel.querySelectorAll('button').forEach(function(button){
+    if(button.closest('#national-book'))return;
+    if(/PDF|طباعة/.test(button.textContent)){
+      button.style.display='none';
+    }
+  });
+});
+</script>
+
+
+
+
+
+
+
+
+
+
+<style>
+/* BOOK_COVER_IMAGE_V7 */
+#national-book .page.cover {
+  width:min(100%,420px) !important;
+  aspect-ratio:1024/1536 !important;
+  min-height:0 !important;
+  margin:0 auto !important;
+  padding:0 !important;
+  border:2px solid #c9a75b !important;
+  border-radius:12px !important;
+  background:url('book-cover.png') center / contain no-repeat #063b2a !important;
+  box-shadow:0 8px 22px #002b1c22;
+}
+#national-book .page.cover::before {
+  content:none !important;
+  display:none !important;
+}
+#national-book .page.cover h2,
+#national-book .page.cover p {
+  display:none !important;
+}
+</style>
+
+<style>
+/* NATIONAL_BOOK_INNER_PAGES_V1 */
+#national-book .page:not(.cover) {
+  background:
+    linear-gradient(135deg,#fffdf7,#f6f2e7) !important;
+  border:1px solid #c9b47d !important;
+  border-radius:12px !important;
+  min-height:430px !important;
+  padding:35px 28px !important;
+  box-sizing:border-box;
+  position:relative;
+}
+#national-book .page:not(.cover)::before {
+  content:"❖";
+  display:block;
+  color:#b49a61;
+  font-size:24px;
+  margin-bottom:12px;
+}
+#national-book .page:not(.cover) h2 {
+  font-size:30px !important;
+  color:#075438 !important;
+  margin:0 0 18px;
+}
+#national-book .page:not(.cover) p {
+  font-size:21px !important;
+  line-height:2.3 !important;
+  color:#234536 !important;
+  max-width:560px;
+  margin:auto;
+}
+#national-book .page:not(.cover)::after {
+  content:"ـــــــــــ ✦ ـــــــــــ";
+  color:#b49a61;
+  font-size:16px;
+  margin-top:22px;
+}
+#national-book .page .toc {
+  font-size:17px;
+}
+@media(max-width:480px){
+  #national-book .page:not(.cover) {
+    padding:28px 18px !important;
+  }
+  #national-book .page:not(.cover) h2 {
+    font-size:25px !important;
+  }
+  #national-book .page:not(.cover) p {
+    font-size:18px !important;
+  }
+}
+</style>
+
+<style>
+/* BOOK_UNIFIED_PAGE_SIZE_V1 */
+#national-book .page {
+  width:min(100%,420px) !important;
+  aspect-ratio:2/3 !important;
+  height:auto !important;
+  min-height:0 !important;
+  margin:0 auto !important;
+  box-sizing:border-box !important;
+}
+#national-book .page:not(.cover) {
+  min-height:0 !important;
+  padding:32px 24px !important;
+  overflow-y:auto !important;
+}
+#national-book .page.cover {
+  padding:0 !important;
+}
+</style>
+
+<style>
+/* BOOK_PRINT_PDF_V2 */
+@page { size:A4 portrait; margin:0; }
+
+@media print {
+  html,body {
+    margin:0 !important;
+    padding:0 !important;
+    background:white !important;
+  }
+  #national-print {
+    display:block !important;
+    width:100% !important;
+  }
+  #national-print .print-page {
+    width:210mm !important;
+    height:297mm !important;
+    min-height:0 !important;
+    max-height:297mm !important;
+    margin:0 !important;
+    padding:18mm !important;
+    box-sizing:border-box !important;
+    border:0 !important;
+    background:#f3efe5 !important;
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:center !important;
+    justify-content:center !important;
+    text-align:center !important;
+    position:relative !important;
+    break-after:page;
+    page-break-after:always;
+    overflow:hidden !important;
+    print-color-adjust:exact;
+    -webkit-print-color-adjust:exact;
+  }
+
+  #national-print .print-page:not(.print-cover)::before {
+    content:"";
+    position:absolute;
+    inset:18mm;
+    border:1px solid #cbb783;
+    pointer-events:none;
+  }
+  #national-print .print-page:not(.print-cover) h2,
+  #national-print .print-page:not(.print-cover) p {
+    max-width:150mm !important;
+    position:relative;
+    z-index:1;
+  }
+  #national-print .print-page:last-child {
+    break-after:auto;
+    page-break-after:auto;
+  }
+  #national-print .print-cover {
+    padding:18mm !important;
+    background:#f3efe5 !important;
+    align-items:center !important;
+    justify-content:center !important;
+  }
+  #national-print .print-cover img {
+    width:100% !important;
+    height:100% !important;
+    object-fit:contain !important;
+    display:block !important;
+    border:0 !important;
+  }
+  #national-print .print-page h2 {
+    color:#075438 !important;
+    font-size:27pt !important;
+    margin:12mm 0 !important;
+  }
+  #national-print .print-page p {
+    color:#234536 !important;
+    font-size:16pt !important;
+    line-height:2.1 !important;
+    white-space:pre-wrap !important;
+    overflow-wrap:anywhere !important;
+  }
+  #national-print .print-ornament {
+    color:#b49a61 !important;
+    font-size:23pt !important;
+  }
+  #national-print .print-page small {
+    position:absolute;
+    bottom:13mm;
+    color:#587467 !important;
+    font-size:10pt !important;
+  }
+}
+</style>
+
+<style>
+/* BOOK_PAGE_FLIP_V1 */
+#national-book {
+  perspective:1400px;
+}
+#national-book .page {
+  transform-origin:right center;
+  backface-visibility:hidden;
+  transition:transform .45s ease,opacity .45s ease;
+  will-change:transform;
+}
+#national-book .page.flip-next {
+  transform:rotateY(-85deg);
+  opacity:.2;
+}
+#national-book .page.flip-prev {
+  transform:rotateY(85deg);
+  opacity:.2;
+}
+#national-book .page.flip-enter-next {
+  transform:rotateY(65deg);
+  opacity:.3;
+}
+#national-book .page.flip-enter-prev {
+  transform:rotateY(-65deg);
+  opacity:.3;
+}
+@media(prefers-reduced-motion:reduce){
+  #national-book .page {
+    transition:none!important;
+  }
+}
+</style>
+
+<style>
+/* BOOK_SPREAD_V1 */
+#national-book{max-width:960px!important}
+#national-book .book-spread{
+  display:flex;
+  direction:rtl;
+  width:100%;
+  justify-content:center;
+  align-items:stretch;
+  perspective:1800px;
+  transform-style:preserve-3d;
+}
+#national-book .book-spread:not(.cover-spread)>.page{
+  flex:1 1 0;
+  width:50%!important;
+  min-width:0;
+  min-height:520px!important;
+  margin:0!important;
+  border-radius:3px!important;
+  box-shadow:inset 5px 0 15px #00000012,0 8px 20px #00000012;
+}
+#national-book .book-spread:not(.cover-spread)>.page:first-child{
+  border-radius:0 12px 12px 0!important;
+}
+#national-book .book-spread:not(.cover-spread)>.page:last-child{
+  border-radius:12px 0 0 12px!important;
+}
+#national-book .book-spread .blank-page{
+  background:#f3efe5!important;
+}
+#national-book .book-spread.cover-spread>.page{
+  margin:0 auto!important;
+}
+#national-book .book-spread.turn-forward{
+  animation:spreadTurnForward .52s ease-in-out;
+}
+#national-book .book-spread.turn-backward{
+  animation:spreadTurnBackward .52s ease-in-out;
+}
+@keyframes spreadTurnForward{
+  0%{transform:perspective(1800px) rotateY(0)}
+  50%{transform:perspective(1800px) rotateY(-12deg)}
+  100%{transform:perspective(1800px) rotateY(0)}
+}
+@keyframes spreadTurnBackward{
+  0%{transform:perspective(1800px) rotateY(0)}
+  50%{transform:perspective(1800px) rotateY(12deg)}
+  100%{transform:perspective(1800px) rotateY(0)}
+}
+@media(max-width:650px){
+  #national-book .book-spread:not(.cover-spread)>.page{
+    padding:14px!important;
+    min-height:360px!important;
+  }
+  #national-book .book-spread .page h2{
+    font-size:19px!important;
+  }
+  #national-book .book-spread .page p{
+    font-size:13px!important;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  #national-book .book-spread{animation:none!important}
+}
+</style>
