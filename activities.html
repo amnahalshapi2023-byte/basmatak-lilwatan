@@ -298,7 +298,6 @@ document.getElementById('clearEntry').onclick=()=>{if(confirm('مسح المدخ
 
 
 
-<script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.js"></script>
 <!-- NATIONAL_FLIPBOOK_V1 -->
 <style>
 #book{display:none!important}
@@ -396,18 +395,18 @@ document.getElementById('clearEntry').onclick=()=>{if(confirm('مسح المدخ
     pages.push({title,body,type});
   }
 
+  // BOOK_PAGE_FLIP_V1
 
-  // BOOK_STPAGEFLIP_V1
-  let flipbook=null;
-  let currentPage=0;
+  // BOOK_SPREAD_V1
+  let flipBusy=false;
 
-  function makeBookPage(item){
+  function makeBookPage(item,pageNumber){
     const page=document.createElement('div');
     page.className='page'+(item.type==='cover'?' cover':'');
 
-    const heading=document.createElement('h2');
-    heading.textContent=item.title;
-    page.appendChild(heading);
+    const title=document.createElement('h2');
+    title.textContent=item.title;
+    page.appendChild(title);
 
     if(item.type==='toc'){
       const toc=document.createElement('div');
@@ -416,7 +415,7 @@ document.getElementById('clearEntry').onclick=()=>{if(confirm('مسح المدخ
         const button=document.createElement('button');
         button.type='button';
         button.textContent=(i+1)+' — '+entry.title;
-        button.onclick=()=>flipbook?.flip(i+3);
+        button.onclick=()=>turnPage(i+3);
         toc.appendChild(button);
       });
       page.appendChild(toc);
@@ -428,55 +427,64 @@ document.getElementById('clearEntry').onclick=()=>{if(confirm('مسح المدخ
     return page;
   }
 
+  function spreadStart(i){
+    return i===0?0:1+2*Math.floor((i-1)/2);
+  }
+
+  function turnPage(target){
+    if(flipBusy || target<0 || target>=pages.length)return;
+    const destination=spreadStart(target);
+    if(destination===index)return;
+
+    flipBusy=true;
+    const book=root.querySelector('.book-spread');
+    if(book){
+      book.classList.add(destination>index?'turn-forward':'turn-backward');
+    }
+    setTimeout(()=>{
+      index=destination;
+      render();
+      flipBusy=false;
+    },520);
+  }
+
   function render(){
     root.replaceChildren();
     if(!pages.length)return;
 
-    if(typeof St==='undefined' || !St.PageFlip){
-      root.textContent='تعذر تحميل محرك التقليب. تحققي من الاتصال بالإنترنت ثم حدّثي الصفحة.';
-      return;
+    const spread=document.createElement('div');
+    spread.className='book-spread';
+
+    if(index===0){
+      spread.classList.add('cover-spread');
+      spread.appendChild(makeBookPage(pages[0],0));
+    }else{
+      const right=makeBookPage(pages[index],index);
+      const left=index+1<pages.length
+        ?makeBookPage(pages[index+1],index+1)
+        :document.createElement('div');
+      if(index+1>=pages.length)left.className='page blank-page';
+      spread.append(right,left);
     }
-
-    const holder=document.createElement('div');
-    holder.className='national-flip-holder';
-    root.appendChild(holder);
-
-    const elements=pages.map(makeBookPage);
-    holder.append(...elements);
-
-    flipbook=new St.PageFlip(holder,{
-      width:420,
-      height:630,
-      size:'stretch',
-      minWidth:250,
-      maxWidth:420,
-      minHeight:375,
-      maxHeight:630,
-      showCover:true,
-      usePortrait:false,
-      flippingTime:850,
-      drawShadow:true,
-      maxShadowOpacity:0.35,
-      mobileScrollSupport:false,
-      clickEventForward:false
-    });
-    flipbook.loadFromHTML(elements);
-    // BOOK_RTL_FIX_V1
-    flipbook.turnToPage(0);
+    root.appendChild(spread);
 
     const nav=document.createElement('div');
     nav.className='book-nav';
 
     const previous=document.createElement('button');
     previous.textContent='→ السابقة';
-    previous.onclick=()=>flipbook.flipNext();
+    previous.disabled=index===0;
+    previous.onclick=()=>turnPage(index===1?0:index-2);
 
     const count=document.createElement('span');
-    count.textContent='1 / '+pages.length;
+    count.textContent=index===0
+      ?'الغلاف'
+      :(index+1)+' – '+Math.min(index+2,pages.length)+' / '+pages.length;
 
     const next=document.createElement('button');
     next.textContent='التالية ←';
-    next.onclick=()=>flipbook.flipPrev();
+    next.disabled=index===spreadStart(pages.length-1);
+    next.onclick=()=>turnPage(index===0?1:index+2);
 
     const save=document.createElement('button');
     save.textContent='📥 حفظ PDF';
@@ -487,16 +495,20 @@ document.getElementById('clearEntry').onclick=()=>{if(confirm('مسح المدخ
 
     nav.append(previous,count,next,save);
     root.appendChild(nav);
-
-    flipbook.on('flip',e=>{
-      currentPage=e.data;
-      index=currentPage;
-      count.textContent=(currentPage+1)+' / '+pages.length;
-      previous.disabled=currentPage===0;
-      next.disabled=currentPage===pages.length-1;
-    });
-    previous.disabled=true;
   }
+
+  let touchStartX=0;
+  root.addEventListener('touchstart',e=>{
+    touchStartX=e.changedTouches[0].screenX;
+  },{passive:true});
+  root.addEventListener('touchend',e=>{
+    if(e.target.closest('button'))return;
+    const dx=e.changedTouches[0].screenX-touchStartX;
+    if(Math.abs(dx)<65)return;
+    if(dx>0)turnPage(index===0?1:index+2);
+    else turnPage(index===1?0:index-2);
+  },{passive:true});
+
 
   // BOOK_PRINT_PDF_V2
   function buildPrint(){
@@ -905,65 +917,5 @@ document.addEventListener('DOMContentLoaded',function(){
 }
 @media(prefers-reduced-motion:reduce){
   #national-book .book-spread{animation:none!important}
-}
-</style>
-
-<style>
-/* BOOK_REAL_PAGE_TURN_V1 */
-#national-book .book-spread.real-page-turn{
-  position:relative!important;
-  animation:none!important;
-  perspective:1800px!important;
-  transform-style:preserve-3d!important;
-}
-#national-book .book-spread .turning-sheet{
-  position:absolute!important;
-  top:0!important;
-  right:0!important;
-  width:50%!important;
-  height:100%!important;
-  margin:0!important;
-  z-index:20!important;
-  backface-visibility:visible!important;
-  transform-style:preserve-3d!important;
-  transform-origin:left center!important;
-  transition:transform .9s cubic-bezier(.35,.05,.65,1)!important;
-  box-shadow:0 8px 22px #00000022!important;
-  pointer-events:none!important;
-}
-#national-book .book-spread.real-page-turn>.page:not(.turning-sheet){
-  transform:none!important;
-}
-@media(prefers-reduced-motion:reduce){
-  #national-book .book-spread .turning-sheet{
-    transition:none!important;
-  }
-}
-</style>
-
-<style>
-/* BOOK_STPAGEFLIP_V1 */
-#national-book{max-width:920px!important}
-#national-book .national-flip-holder{
-  margin:18px auto;
-  direction:ltr;
-}
-#national-book .national-flip-holder .page{
-  box-sizing:border-box!important;
-  width:100%!important;
-  height:100%!important;
-  min-height:0!important;
-  margin:0!important;
-  overflow:hidden!important;
-  border-radius:4px!important;
-}
-#national-book .national-flip-holder .page.cover{
-  width:100%!important;
-  height:100%!important;
-  aspect-ratio:auto!important;
-  background-size:contain!important;
-}
-#national-book .national-flip-holder .page .toc{
-  max-height:70%!important;
 }
 </style>
