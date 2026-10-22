@@ -416,3 +416,42 @@ document.getElementById('clearEntry').onclick=()=>{if(confirm('مسح المدخ
 
 
 
+
+
+<!-- FINGERPRINT_ENTRY_ORDER_V2 -->
+<style>
+html body #fingerprint-entrance:not(.hidden){
+  display:flex!important;
+  position:fixed!important;
+  inset:0!important;
+  z-index:2147483647!important;
+  visibility:visible!important;
+  opacity:1!important;
+}
+html body #fingerprint-entrance.hidden{
+  display:none!important;
+}
+</style>
+<script>
+(function(){
+  const entrance=document.getElementById('fingerprint-entrance');
+  const enter=document.getElementById('fingerprint-enter');
+  if(!entrance||!enter)return;
+
+  // عند فتح الصفحة، تظهر البصمة أولًا
+  entrance.classList.remove('hidden');
+
+  // بعد الضغط، لا تظهر عند الرجوع بين أقسام المشاركة
+  enter.addEventListener('click',()=>{
+    entrance.classList.add('hidden');
+  });
+
+  // التأكد من أن الرجوع داخل الصفحة لا يعيد البصمة
+  const back=document.getElementById('student-back');
+  if(back){
+    back.addEventListener('click',()=>{
+      entrance.classList.add('hidden');
+    });
+  }
+})();
+</script>
