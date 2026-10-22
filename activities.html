@@ -453,7 +453,7 @@ document.getElementById('clearEntry').onclick=()=>{if(confirm('مسح المدخ
       minHeight:375,
       maxHeight:630,
       showCover:true,
-      usePortrait:true,
+      usePortrait:false,
       flippingTime:850,
       drawShadow:true,
       maxShadowOpacity:0.35,
@@ -461,20 +461,22 @@ document.getElementById('clearEntry').onclick=()=>{if(confirm('مسح المدخ
       clickEventForward:false
     });
     flipbook.loadFromHTML(elements);
+    // BOOK_RTL_FIX_V1
+    flipbook.turnToPage(0);
 
     const nav=document.createElement('div');
     nav.className='book-nav';
 
     const previous=document.createElement('button');
     previous.textContent='→ السابقة';
-    previous.onclick=()=>flipbook.flipPrev();
+    previous.onclick=()=>flipbook.flipNext();
 
     const count=document.createElement('span');
     count.textContent='1 / '+pages.length;
 
     const next=document.createElement('button');
     next.textContent='التالية ←';
-    next.onclick=()=>flipbook.flipNext();
+    next.onclick=()=>flipbook.flipPrev();
 
     const save=document.createElement('button');
     save.textContent='📥 حفظ PDF';
