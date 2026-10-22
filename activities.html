@@ -18,7 +18,8 @@ const $=id=>document.getElementById(id),key='shield_vatan_entries_v1';let entrie
 const canvas=$('draw'),ctx=canvas.getContext('2d');ctx.strokeStyle='#07613f';ctx.lineWidth=6;ctx.lineCap='round';let drawing=false;function pos(e){let r=canvas.getBoundingClientRect();return [(e.clientX-r.left)*canvas.width/r.width,(e.clientY-r.top)*canvas.height/r.height]}canvas.addEventListener('pointerdown',e=>{drawing=true;canvas.setPointerCapture(e.pointerId);ctx.beginPath();ctx.moveTo(...pos(e))});canvas.addEventListener('pointermove',e=>{if(drawing){ctx.lineTo(...pos(e));ctx.stroke()}});canvas.addEventListener('pointerup',()=>drawing=false);$('clearDraw').onclick=()=>ctx.clearRect(0,0,canvas.width,canvas.height);let attachedImage=null;$('imageUpload').addEventListener('change',e=>{let file=e.target.files[0];if(!file)return;if(file.size>1.5*1024*1024){alert('اختاري صورة أقل من 1.5 ميجابايت');e.target.value='';return}let r=new FileReader();r.onload=()=>{attachedImage=r.result;$('imagePreview').src=attachedImage;$('imagePreview').classList.remove('hide')};r.readAsDataURL(file)});
 $('startRec').onclick=async()=>{try{let stream=await navigator.mediaDevices.getUserMedia({audio:true});parts=[];recorder=new MediaRecorder(stream);recorder.ondataavailable=e=>{if(e.data.size)parts.push(e.data)};recorder.onstop=()=>{audioBlob=new Blob(parts,{type:recorder.mimeType||'audio/webm'});$('playback').src=URL.createObjectURL(audioBlob);$('playback').classList.remove('hide');$('saveAudio').classList.remove('hide');stream.getTracks().forEach(t=>t.stop());$('recordStatus').textContent='تم التسجيل ✓'};recorder.start();$('recordStatus').textContent='جاري التسجيل...';$('startRec').disabled=true;$('stopRec').disabled=false}catch(e){alert('تعذر استخدام الميكروفون. افتحي الموقع عبر HTTPS واسمحي بالوصول للميكروفون.')}};$('stopRec').onclick=()=>{if(recorder?.state==='recording')recorder.stop();$('startRec').disabled=false;$('stopRec').disabled=true};function download(url,name){let a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove()}$('saveAudio').onclick=()=>{if(audioBlob)download(URL.createObjectURL(audioBlob),'رسالة_درع_الوطن.webm')};
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}function render(){let n=entries.length;$('bar').style.width=Math.min(100,n/50*100)+'%';$('progressText').textContent=n+' من 50 مشاركة لاكتمال الدرع';let texts=entries.filter(e=>e.text);$('book').innerHTML=texts.length?texts.map(e=>'<div class="panel"><b>'+escapeHtml(e.name||'مشاركة')+' — '+escapeHtml(e.to)+'</b><p>'+escapeHtml(e.text)+'</p></div>').join(''):'<p class="note">لا توجد رسائل محفوظة بعد.</p>';}render();
-const BACKEND='https://script.google.com/macros/s/AKfycbwG3Tebv_85e3zokyX-V9c4Y_1rLvHAI4udK1b9GU90mA9E_YpsnOHKC4cirxywiEV1gg/exec';
+const SUPABASE_URL='https://stpwlbbfjjjyqukirjju.supabase.co';
+const SUPABASE_KEY='sb_publishable__fD0Sb2vSH_Qk_61kvP5Jg_S0W6_QDF';
 const blobAsDataURL=blob=>new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=reject;reader.readAsDataURL(blob)});
 $('submit').onclick=async()=>{
  const value=kind==='رسالة'?$('message').value.trim():kind==='بطاقة جاهزة'?$('ready').value:kind==='رسمة'?'رسمة وطنية':'رسالة صوتية';
@@ -36,18 +37,40 @@ $('submit').onclick=async()=>{
  let identity=null;try{identity=JSON.parse(sessionStorage.getItem('vatan_identity')||'null')}catch(e){}
  const sender=$('student').value.trim()||identity?.name||'مشاركة زائرة';
  const payload={name:sender,message:value,kind,to:$('to').value,media};
+
  try{
-  // Google Apps Script doesn't provide browser-readable CORS responses. This confirms dispatch only,
-  // not successful server-side storage. The teacher must check the private sheet and Drive folder.
-  await fetch(BACKEND,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)});
- }catch(err){alert('تعذر إرسال المشاركة. تحققي من الإنترنت وحاولي مجددًا.');sendButton.disabled=false;sendButton.textContent='إرسال المشاركة';return}
+  const response=await fetch(
+   SUPABASE_URL+'/rest/v1/student_messages',
+   {
+    method:'POST',
+    headers:{
+     'apikey':SUPABASE_KEY,
+     'Content-Type':'application/json',
+     'Prefer':'return=minimal'
+    },
+    body:JSON.stringify({
+     student_name:sender,
+     message:value,
+     status:'pending'
+    })
+   }
+  );
+  if(!response.ok)throw new Error(await response.text());
+ }catch(err){
+  alert('لم تُحفظ المشاركة في قاعدة البيانات. حاولي مجددًا.');
+  console.error(err);
+  sendButton.disabled=false;
+  sendButton.textContent='إرسال المشاركة';
+  return;
+ }
+
  const e={participantName:identity?.name||'مشاركة زائرة',participantClass:'',kind,text:kind==='رسمة'||kind==='صوت'?'':value,name:sender,to:$('to').value,date:new Date().toLocaleDateString('ar-SA')};
  // Keep a lightweight local copy; only text is submitted to the Google Sheet.
  entries.push(e);
  try{localStorage.setItem(key,JSON.stringify(entries))}catch(err){entries.pop()}
  $('badgeNumber').textContent=entries.length;$('badgeName').textContent=sender;
  $('success').classList.remove('hide');$('success').scrollIntoView({behavior:'smooth'});render();
- alert('تم إرسال طلب المشاركة. يرجى مراجعة جدول Google Sheets للتأكد من وصول الرسالة.');
+ alert('تم حفظ مشاركتك بنجاح، وهي بانتظار مراجعة المعلمة.');
  sendButton.disabled=false;sendButton.textContent='إرسال المشاركة';
 };$('again').onclick=()=>{$('success').classList.add('hide');$('entry').scrollIntoView({behavior:'smooth'})};
 $('downloadCard').onclick=()=>{let c=document.createElement('canvas');c.width=1000;c.height=650;let x=c.getContext('2d');x.fillStyle='#faf4e2';x.fillRect(0,0,1000,650);x.strokeStyle='#b8974b';x.lineWidth=15;x.strokeRect(22,22,956,606);x.textAlign='center';x.fillStyle='#07503a';x.font='bold 74px Tahoma';x.fillText('درع الوطن',500,155);x.font='100px Tahoma';x.fillText('★',500,290);x.font='bold 47px Tahoma';x.fillText('أنتِ حارسة الدرع',500,395);x.fillText('رقم '+entries.length,500,485);x.font='28px Tahoma';x.fillText('بصمتك للوطن • شكرًا لمشاركتك',500,560);download(c.toDataURL('image/png'),'بطاقة_درع_الوطن.png')};
