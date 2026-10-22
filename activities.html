@@ -115,7 +115,7 @@ button{
 <label>اسم المشاركة (اختياري)</label><input id="student" maxlength="60" placeholder="مثال: طالبة من مدرستنا"><button type="button" id="clearEntry" style="background:#a04435">🗑️ حذف</button><button type="button" onclick="location.href='index.html'" style="background:#a88a44">↩️ رجوع</button><button id="submit">إرسال المشاركة</button><p class="note">تنبيه: لا تُعتبر المشاركة محفوظة مركزيًا إلا بعد تفعيل خدمة Google Apps Script وتأكيدها في جدول المعلمة. لا تظهر المشاركات للزائرات تلقائيًا. التسجيلات والصور بحد أقصى 1.5 ميجابايت.</p></section>
 <section id="success" class="panel hide"><div class="certificate"><div class="shield"><svg viewBox="0 0 100 120" width="90" height="108" role="img" aria-label="درع ذهبي" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff0a5"/><stop offset=".45" stop-color="#e5bb4d"/><stop offset="1" stop-color="#956319"/></linearGradient></defs><path d="M50 5 L91 19 L86 72 Q75 97 50 113 Q25 97 14 72 L9 19 Z" fill="url(#gold)" stroke="#8c611c" stroke-width="4"/><path d="M50 15 L80 26 L76 68 Q68 87 50 100 Q32 87 24 68 L20 26 Z" fill="none" stroke="#fff1ad" stroke-width="3"/><path d="M50 35 L56 48 L71 50 L60 61 L63 77 L50 69 L37 77 L40 61 L29 50 L44 48 Z" fill="#fff4c1"/></svg></div><h2>أنتِ حارسة الدرع</h2><div class="num" id="badgeNumber">1</div><p>حُفظت نسخة محلية من مشاركتك على هذا الجهاز. تحققي من وصولها لجدول المعلمة.</p><p id="badgeName"></p><div class="actions no-print" style="justify-content:center"><button id="downloadCard">⬇️ بطاقتي</button><button class="secondary" id="again">مشاركة جديدة</button></div></div></section>
 <section class="panel"><h2>🛡️ درع مدرستنا</h2><p>كل مشاركة = قطعة تضيء ✨</p><div class="shield" id="shieldIcon"><svg viewBox="0 0 100 120" width="90" height="108" role="img" aria-label="درع ذهبي" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff0a5"/><stop offset=".45" stop-color="#e5bb4d"/><stop offset="1" stop-color="#956319"/></linearGradient></defs><path d="M50 5 L91 19 L86 72 Q75 97 50 113 Q25 97 14 72 L9 19 Z" fill="url(#gold)" stroke="#8c611c" stroke-width="4"/><path d="M50 15 L80 26 L76 68 Q68 87 50 100 Q32 87 24 68 L20 26 Z" fill="none" stroke="#fff1ad" stroke-width="3"/><path d="M50 35 L56 48 L71 50 L60 61 L63 77 L50 69 L37 77 L40 61 L29 50 L44 48 Z" fill="#fff4c1"/></svg></div><div class="progress"><div class="fill" id="bar"></div></div><p id="progressText">0 من 50 مشاركة لاكتمال الدرع</p><p class="note">يُحتسب التقدم هنا من المشاركات المسجلة على هذا الجهاز فقط.</p></section>
-<section class="panel"><h2>📚 كتاب درع الوطن</h2><p>رسائل وفاء من المشاركات على هذا الجهاز</p><div id="book"></div><div class="actions no-print"><button onclick="window.print()">🖨️ طباعة الكتاب PDF</button></div></section>
+<section class="panel"><h2>📚 كتاب درع الوطن</h2><p>كتاب تفاعلي يضم مشاركات الطالبات المعتمدة</p><div id="book"></div><div class="actions no-print"><button onclick="window.print()">🖨️ طباعة الكتاب PDF</button></div></section>
 
 </main><div class="footer">🇸🇦 درع الوطن • حب ووفاء ودعاء</div>
 <script>
@@ -517,4 +517,61 @@ document.getElementById('clearEntry').onclick=()=>{if(confirm('مسح المدخ
   }
   loadApprovedBook();
 })();
+</script>
+
+
+<style>
+/* NATIONAL_BOOK_DESIGN_V2 */
+#national-book .page.cover {
+  background:
+    radial-gradient(ellipse at 50% 35%, #247c57 0%, transparent 60%),
+    linear-gradient(145deg,#063b2a,#075438 55%,#032b20) !important;
+  border:5px double #c9a75b !important;
+  min-height:470px;
+  padding:36px 24px;
+  box-sizing:border-box;
+  position:relative;
+}
+#national-book .page.cover::before {
+  content:"🇸🇦";
+  display:block;
+  font-size:66px;
+  line-height:1.5;
+}
+#national-book .page.cover h2 {
+  color:#e8c878 !important;
+  font-size:clamp(30px,7vw,44px) !important;
+  text-shadow:0 2px 8px #001b12;
+  margin:8px 0;
+}
+#national-book .page.cover p {
+  color:#fff7db !important;
+  font-size:18px !important;
+  line-height:2.1;
+  max-width:90%;
+}
+#national-book .book-nav button {
+  background:#075438;
+  color:white;
+  border:1px solid #c9a75b;
+}
+#national-book .book-nav button:disabled {
+  opacity:.4;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+  const oldBook=document.getElementById('book');
+  if(!oldBook)return;
+  const panel=oldBook.closest('section.panel');
+  if(!panel)return;
+
+  panel.querySelectorAll('button').forEach(function(button){
+    if(button.closest('#national-book'))return;
+    if(/PDF|طباعة/.test(button.textContent)){
+      button.style.display='none';
+    }
+  });
+});
 </script>
