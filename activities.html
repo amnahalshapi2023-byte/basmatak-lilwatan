@@ -431,21 +431,47 @@ document.getElementById('clearEntry').onclick=()=>{if(confirm('مسح المدخ
     return i===0?0:1+2*Math.floor((i-1)/2);
   }
 
+  // BOOK_REAL_PAGE_TURN_V1
   function turnPage(target){
     if(flipBusy || target<0 || target>=pages.length)return;
+
     const destination=spreadStart(target);
     if(destination===index)return;
 
-    flipBusy=true;
-    const book=root.querySelector('.book-spread');
-    if(book){
-      book.classList.add(destination>index?'turn-forward':'turn-backward');
+    const spread=root.querySelector('.book-spread');
+    if(!spread || index===0 || destination===0){
+      index=destination;
+      render();
+      return;
     }
+
+    flipBusy=true;
+    const forward=destination>index;
+
+    // الورقة المتحركة فوق الصفحتين الثابتتين
+    const turning=spread.querySelector('.page:first-child').cloneNode(true);
+    turning.classList.add('turning-sheet');
+    turning.querySelectorAll('button').forEach(b=>b.disabled=true);
+
+    spread.appendChild(turning);
+    spread.classList.add('real-page-turn');
+
+    turning.style.transformOrigin='left center';
+    turning.style.transform='rotateY(0deg)';
+
+    requestAnimationFrame(()=>{
+      requestAnimationFrame(()=>{
+        turning.style.transform=forward
+          ?'rotateY(-180deg)'
+          :'rotateY(180deg)';
+      });
+    });
+
     setTimeout(()=>{
       index=destination;
       render();
       flipBusy=false;
-    },520);
+    },950);
   }
 
   function render(){
@@ -917,5 +943,38 @@ document.addEventListener('DOMContentLoaded',function(){
 }
 @media(prefers-reduced-motion:reduce){
   #national-book .book-spread{animation:none!important}
+}
+</style>
+
+<style>
+/* BOOK_REAL_PAGE_TURN_V1 */
+#national-book .book-spread.real-page-turn{
+  position:relative!important;
+  animation:none!important;
+  perspective:1800px!important;
+  transform-style:preserve-3d!important;
+}
+#national-book .book-spread .turning-sheet{
+  position:absolute!important;
+  top:0!important;
+  right:0!important;
+  width:50%!important;
+  height:100%!important;
+  margin:0!important;
+  z-index:20!important;
+  backface-visibility:visible!important;
+  transform-style:preserve-3d!important;
+  transform-origin:left center!important;
+  transition:transform .9s cubic-bezier(.35,.05,.65,1)!important;
+  box-shadow:0 8px 22px #00000022!important;
+  pointer-events:none!important;
+}
+#national-book .book-spread.real-page-turn>.page:not(.turning-sheet){
+  transform:none!important;
+}
+@media(prefers-reduced-motion:reduce){
+  #national-book .book-spread .turning-sheet{
+    transition:none!important;
+  }
 }
 </style>
