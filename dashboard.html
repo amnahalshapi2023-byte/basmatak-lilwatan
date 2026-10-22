@@ -77,4 +77,55 @@ document.getElementById('teacher-logout').onclick = () => {
   document.getElementById('teacher-logout').classList.add('hide');
 };
 </script>
+
+<script>
+// MAGIC_LINK_LOGIN_V1
+(async function () {
+  const msg = document.getElementById('teacher-message');
+  const params = new URLSearchParams(location.hash.slice(1));
+  const accessToken = params.get('access_token');
+
+  if (!accessToken) return;
+
+  history.replaceState(null, '', location.pathname);
+
+  try {
+    msg.textContent = 'جارٍ التحقق من دخول المعلمة...';
+
+    const userResponse = await fetch(
+      TEACHER_SUPABASE_URL + '/auth/v1/user',
+      {headers: {
+        apikey: TEACHER_SUPABASE_KEY,
+        Authorization: 'Bearer ' + accessToken
+      }}
+    );
+
+    if (!userResponse.ok) throw Error('تعذر التحقق من الحساب');
+    const user = await userResponse.json();
+
+    const adminResponse = await fetch(
+      TEACHER_SUPABASE_URL +
+      '/rest/v1/teacher_admins?select=user_id&user_id=eq.' +
+      encodeURIComponent(user.id),
+      {headers: {
+        apikey: TEACHER_SUPABASE_KEY,
+        Authorization: 'Bearer ' + accessToken
+      }}
+    );
+
+    if (!adminResponse.ok) throw Error('تعذر التحقق من الصلاحيات');
+
+    const admins = await adminResponse.json();
+    if (!admins.length) throw Error('الحساب غير مصرح له بالإدارة');
+
+    window.teacherAccessToken = accessToken;
+    msg.textContent = 'تم تسجيل دخول المعلمة بنجاح';
+    document.getElementById('teacher-logout').classList.remove('hide');
+
+  } catch (error) {
+    window.teacherAccessToken = null;
+    msg.textContent = error.message;
+  }
+})();
+</script>
 </body></html>
