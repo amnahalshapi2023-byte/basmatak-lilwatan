@@ -575,3 +575,28 @@ document.addEventListener('DOMContentLoaded',function(){
   });
 });
 </script>
+
+<style>
+/* NATIONAL_BOOK_FINAL_FIX_V3 */
+#national-book .page.cover::before {
+  content:"🇸🇦" !important;
+  font-family:Arial,sans-serif !important;
+  font-size:65px !important;
+  color:transparent;
+}
+#national-book .page.cover h2 {
+  font-size:0 !important;
+}
+#national-book .page.cover h2::after {
+  content:"درع الوطن";
+  font-size:42px !important;
+  color:#e8c878;
+  display:block;
+  font-weight:bold;
+}
+#national-book .page.cover p {
+  font-size:21px !important;
+  font-weight:bold;
+  line-height:2.2 !important;
+}
+</style>
