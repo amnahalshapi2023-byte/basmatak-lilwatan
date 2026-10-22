@@ -663,3 +663,31 @@ document.addEventListener('DOMContentLoaded',function(){
   text-shadow:0 2px 5px #002b1c;
 }
 </style>
+
+<style>
+/* BOOK_PORTRAIT_COVER_V6 */
+#national-book .page.cover {
+  width:min(100%,360px) !important;
+  min-height:0 !important;
+  aspect-ratio:650 / 1000 !important;
+  margin:0 auto !important;
+  box-sizing:border-box !important;
+  padding:24px 14px !important;
+  background:#063b2a !important;
+  justify-content:space-between !important;
+}
+#national-book .page.cover::before {
+  background:url('saudi-fingerprint.png')
+    center / 100% 100% no-repeat !important;
+}
+#national-book .page.cover h2 {
+  margin-top:20px !important;
+}
+#national-book .page.cover h2::after {
+  font-size:30px !important;
+}
+#national-book .page.cover p {
+  margin-bottom:16px !important;
+  font-size:15px !important;
+}
+</style>
