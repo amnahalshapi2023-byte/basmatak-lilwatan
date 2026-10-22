@@ -102,6 +102,25 @@ button{
   button{font-size:14px}
 }
 </style>
+
+<style>
+/* FINGERPRINT_VISIBILITY_FIX_V1 */
+html body #fingerprint-entrance:not(.hidden){
+  display:flex!important;
+  position:fixed!important;
+  inset:0!important;
+  width:100vw!important;
+  height:100dvh!important;
+  z-index:2147483647!important;
+  opacity:1!important;
+  visibility:visible!important;
+  transform:none!important;
+  pointer-events:auto!important;
+}
+html body #fingerprint-entrance.hidden{
+  display:none!important;
+}
+</style>
 </head><body>
 <!-- FINGERPRINT_ENTRANCE_V1 -->
 <style>
