@@ -637,3 +637,29 @@ document.addEventListener('DOMContentLoaded',function(){
   margin-bottom:12px;
 }
 </style>
+
+<style>
+/* BOOK_COVER_IMAGE_FIX_V5 */
+#national-book .page.cover {
+  background:#063b2a !important;
+  position:relative !important;
+  isolation:isolate;
+  overflow:hidden;
+  justify-content:space-between !important;
+}
+#national-book .page.cover::before {
+  content:"" !important;
+  display:block !important;
+  position:absolute !important;
+  inset:0 !important;
+  background:url('saudi-fingerprint.png') center / 100% 100% no-repeat !important;
+  opacity:1 !important;
+  z-index:-1 !important;
+}
+#national-book .page.cover h2,
+#national-book .page.cover p {
+  position:relative;
+  z-index:1;
+  text-shadow:0 2px 5px #002b1c;
+}
+</style>
