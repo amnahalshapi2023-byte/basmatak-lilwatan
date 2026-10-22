@@ -190,4 +190,144 @@ document.getElementById('teacher-logout').onclick = () => {
  };
 })();
 </script>
+
+<style>
+/* TEACHER_MESSAGES_V1 */
+#teacher-messages{max-width:1100px;margin:20px auto}
+#teacher-messages table{min-width:700px}
+#teacher-messages td{vertical-align:top}
+#teacher-messages .message-text{white-space:pre-wrap;overflow-wrap:anywhere;max-width:380px}
+#teacher-messages button{padding:7px 10px}
+</style>
+<section class="card hide" id="teacher-messages">
+<h2>💌 مشاركات الطالبات</h2>
+<p class="muted">راجعي المشاركات قبل اعتماد ظهورها للزائرات.</p>
+<button type="button" id="refresh-messages">🔄 تحديث المشاركات</button>
+<p id="messages-status"></p>
+<div class="scroll">
+<table>
+<thead><tr>
+<th>اسم الطالبة</th><th>المشاركة</th><th>التاريخ</th>
+<th>الحالة</th><th>الإجراءات</th>
+</tr></thead>
+<tbody id="teacher-message-rows"></tbody>
+</table>
+</div>
+</section>
+<script>
+(function(){
+ const section=document.getElementById('teacher-messages');
+ const rows=document.getElementById('teacher-message-rows');
+ const status=document.getElementById('messages-status');
+ const key=TEACHER_SUPABASE_KEY;
+ const url=TEACHER_SUPABASE_URL+'/rest/v1/student_messages';
+ let busy=false;
+
+ function authHeaders(){
+   return {
+     apikey:key,
+     Authorization:'Bearer '+window.teacherAccessToken
+   };
+ }
+
+ function cell(tr,value){
+   const td=document.createElement('td');
+   td.textContent=value==null?'':String(value);
+   tr.appendChild(td);
+   return td;
+ }
+
+ async function loadMessages(){
+   if(!window.teacherAccessToken){
+     section.classList.add('hide');
+     return;
+   }
+   section.classList.remove('hide');
+   status.textContent='جارٍ تحميل المشاركات...';
+   try{
+     const r=await fetch(
+       url+'?select=id,student_name,message,status,created_at&order=created_at.desc',
+       {headers:authHeaders()}
+     );
+     if(!r.ok)throw Error('تعذر قراءة المشاركات: '+r.status);
+     const data=await r.json();
+     rows.replaceChildren();
+
+     for(const item of data){
+       const tr=document.createElement('tr');
+       cell(tr,item.student_name);
+       cell(tr,item.message).className='message-text';
+       cell(tr,item.created_at?
+         new Date(item.created_at).toLocaleString('ar-SA'):'');
+       cell(tr,({
+         pending:'بانتظار المراجعة',
+         approved:'معتمدة',
+         rejected:'مرفوضة'
+       })[item.status]||item.status);
+
+       const actions=document.createElement('td');
+       for(const [label,newStatus] of [
+         ['اعتماد','approved'],['رفض','rejected']
+       ]){
+         const btn=document.createElement('button');
+         btn.type='button';
+         btn.textContent=label;
+         btn.disabled=item.status===newStatus;
+         btn.onclick=()=>changeMessage(item.id,'PATCH',newStatus);
+         actions.appendChild(btn);
+       }
+       const del=document.createElement('button');
+       del.type='button';
+       del.className='danger';
+       del.textContent='حذف';
+       del.onclick=()=>{
+         if(confirm('حذف هذه المشاركة نهائيًا؟'))
+           changeMessage(item.id,'DELETE');
+       };
+       actions.appendChild(del);
+       tr.appendChild(actions);
+       rows.appendChild(tr);
+     }
+     status.textContent='عدد المشاركات: '+data.length;
+   }catch(e){
+     status.textContent=e.message;
+   }
+ }
+
+ async function changeMessage(id,method,newStatus){
+   if(busy)return;
+   busy=true;
+   status.textContent='جارٍ حفظ التغيير...';
+   try{
+     const headers=authHeaders();
+     const options={method,headers};
+     if(method==='PATCH'){
+       headers['Content-Type']='application/json';
+       options.body=JSON.stringify({status:newStatus});
+     }
+     const r=await fetch(
+       url+'?id=eq.'+encodeURIComponent(id),options
+     );
+     if(!r.ok)throw Error('تعذر حفظ التغيير: '+r.status);
+     await loadMessages();
+   }catch(e){
+     status.textContent=e.message;
+   }finally{busy=false}
+ }
+
+ document.getElementById('refresh-messages').onclick=loadMessages;
+
+ // عرض المشاركات عند نجاح دخول المعلمة
+ const observer=new MutationObserver(()=>{
+   if(window.teacherAccessToken){
+     observer.disconnect();
+     loadMessages();
+   }
+ });
+ observer.observe(document.body,{
+   subtree:true,childList:true,attributes:true
+ });
+ if(window.teacherAccessToken)loadMessages();
+})();
+</script>
 </body></html>
