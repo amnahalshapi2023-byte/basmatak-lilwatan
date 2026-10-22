@@ -493,7 +493,10 @@ document.getElementById('clearEntry').onclick=()=>{if(confirm('مسح المدخ
       messages.forEach((m,i)=>{
         const content=(m.message||'').trim();
         if(!content)return;
-        const title='رسالة وطنية '+(i+1);
+        const firstLine=content.split(/[\n.!؟]/)[0].trim();
+        const title=firstLine.length>38
+          ? firstLine.slice(0,38)+'…'
+          : (firstLine || 'رسالة وطنية '+(i+1));
         const author=(m.student_name||'طالبة من مدرستنا').trim();
         addPage(title,content+'\n\nبقلم: '+author);
       });
