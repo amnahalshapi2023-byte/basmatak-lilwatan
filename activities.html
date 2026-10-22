@@ -473,7 +473,7 @@ document.getElementById('clearEntry').onclick=()=>{if(confirm('مسح المدخ
         const paragraph=document.createElement('p');
         paragraph.textContent=item.type==='toc'
           ? pages.slice(3).map((x,j)=>
-              (j+1)+' — '+x.title).join('\\n')
+              (j+1)+' — '+x.title).join(String.fromCharCode(10))
           : item.body;
 
         const ornament=document.createElement('div');
