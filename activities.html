@@ -103,7 +103,7 @@ button{
 }
 </style>
 </head><body><header><div style="font-size:48px">🇸🇦</div><h1>درع الوطن</h1><p>بصمتك للوطن • رسائل وفاء ودعاء لحماة الوطن</p></header><main class="wrap">
-<section class="panel no-print"><h2>💌 شاركي في درع الوطن</h2><p>اختاري نوع مشاركتك، ثم أرسلي رسالة محبة وفخر إلى المرابطين على الحد.</p><div class="choices"><button class="choice active" data-kind="رسالة">💌<br>رسالة</button><button class="choice" data-kind="بطاقة جاهزة">🏅<br>بطاقة جاهزة</button><button class="choice" data-kind="رسمة">🎨<br>رسمة</button><button class="choice" data-kind="صوت">🎙️<br>صوت</button></div></section>
+<section class="panel no-print" id="student-choices"><h2>💌 شاركي في درع الوطن</h2><p>اختاري نوع مشاركتك، ثم أرسلي رسالة محبة وفخر إلى المرابطين على الحد.</p><div class="choices"><button class="choice active" data-kind="رسالة">💌<br>رسالة</button><button class="choice" data-kind="بطاقة جاهزة">🏅<br>بطاقة جاهزة</button><button class="choice" data-kind="رسمة">🎨<br>رسمة</button><button class="choice" data-kind="صوت">🎙️<br>صوت</button></div></section>
 <section id="entry" class="panel"><h2 id="kindTitle">✍️ رسالتك للمرابطين</h2><label>إلى</label><select id="to"><option>المرابطون على الحد (عام)</option><option>جنودنا البواسل</option><option>حماة الوطن</option></select>
 <div id="messageBox"><textarea id="message" maxlength="600" placeholder="أبطالنا على الحد... أنتم فخرنا، ودعاؤنا معكم دائمًا."></textarea></div>
 <div id="readyBox" class="hide"><select id="ready"><option>أنتم درع الوطن وعزّه، حفظكم الله ورعاكم.</option><option>يا حماة الوطن، قلوبنا معكم ودعواتنا ترافقكم.</option><option>شكرًا لمن يسهر لأجل أمن وطننا، دمتم فخرًا لنا.</option></select></div>
@@ -177,3 +177,112 @@ $('submit').onclick=async()=>{
 };$('again').onclick=()=>{$('success').classList.add('hide');$('entry').scrollIntoView({behavior:'smooth'})};
 $('downloadCard').onclick=()=>{let c=document.createElement('canvas');c.width=1000;c.height=650;let x=c.getContext('2d');x.fillStyle='#faf4e2';x.fillRect(0,0,1000,650);x.strokeStyle='#b8974b';x.lineWidth=15;x.strokeRect(22,22,956,606);x.textAlign='center';x.fillStyle='#07503a';x.font='bold 74px Tahoma';x.fillText('درع الوطن',500,155);x.font='100px Tahoma';x.fillText('★',500,290);x.font='bold 47px Tahoma';x.fillText('أنتِ حارسة الدرع',500,395);x.fillText('رقم '+entries.length,500,485);x.font='28px Tahoma';x.fillText('بصمتك للوطن • شكرًا لمشاركتك',500,560);download(c.toDataURL('image/png'),'بطاقة_درع_الوطن.png')};
 document.getElementById('clearEntry').onclick=()=>{if(confirm('مسح المدخلات الحالية؟')){document.getElementById('message').value='';document.getElementById('student').value='';ctx.clearRect(0,0,canvas.width,canvas.height);audioBlob=null;document.getElementById('playback').classList.add('hide')}};</script></body></html>
+
+<!-- STUDENT_PAGE_NAV_V1 -->
+<style>
+#entry.student-nav-hidden,
+#success.student-nav-hidden,
+.student-nav-hidden {
+  display:none!important;
+}
+#student-back {
+  display:block;
+  margin:0 0 16px auto;
+  background:#f4eee1;
+  color:#07543b;
+  border:1px solid #d9b96e;
+  border-radius:10px;
+  padding:10px 18px;
+  cursor:pointer;
+}
+#student-choices.student-nav-hidden{display:none!important}
+#school-participations {
+  max-width:900px;
+  margin:15px auto;
+}
+#school-participations summary {
+  cursor:pointer;
+  background:#fff;
+  color:#07543b;
+  padding:18px;
+  border:1px solid #d9b96e;
+  border-radius:14px;
+  font-weight:bold;
+  font-size:18px;
+}
+#school-participations[open] summary{
+  margin-bottom:12px;
+}
+</style>
+<script>
+(function(){
+  const choices=document.getElementById('student-choices');
+  const entry=document.getElementById('entry');
+  const success=document.getElementById('success');
+  const book=document.getElementById('book');
+  const shield=document.getElementById('shieldIcon');
+
+  if(!choices||!entry)return;
+
+  const participationPanels=[];
+  [shield,book].forEach(el=>{
+    const panel=el&&el.closest('section');
+    if(panel&&!participationPanels.includes(panel))
+      participationPanels.push(panel);
+  });
+
+  const wrapper=document.createElement('details');
+  wrapper.id='school-participations';
+  const summary=document.createElement('summary');
+  summary.textContent='🛡️ مشاركات مدرستنا — اضغطي للعرض';
+  wrapper.appendChild(summary);
+
+  if(participationPanels.length){
+    participationPanels[0].before(wrapper);
+    participationPanels.forEach(panel=>wrapper.appendChild(panel));
+  }
+
+  const back=document.createElement('button');
+  back.id='student-back';
+  back.type='button';
+  back.textContent='↩ الرجوع إلى أنواع المشاركة';
+  entry.prepend(back);
+
+  function home(){
+    choices.classList.remove('student-nav-hidden');
+    entry.classList.add('student-nav-hidden');
+    if(success)success.classList.add('student-nav-hidden');
+    back.hidden=true;
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+
+  function openEntry(){
+    choices.classList.add('student-nav-hidden');
+    entry.classList.remove('student-nav-hidden');
+    back.hidden=false;
+    entry.scrollIntoView({behavior:'smooth',block:'start'});
+  }
+
+  back.addEventListener('click',home);
+
+  const buttons=Array.from(choices.querySelectorAll('button'));
+  buttons.forEach(button=>{
+    button.addEventListener('click',()=>{
+      setTimeout(openEntry,0);
+    });
+  });
+
+  if(success){
+    const observer=new MutationObserver(()=>{
+      if(!success.classList.contains('hide')){
+        choices.classList.add('student-nav-hidden');
+        entry.classList.add('student-nav-hidden');
+        success.classList.remove('student-nav-hidden');
+      }
+    });
+    observer.observe(success,{attributes:true,attributeFilter:['class']});
+  }
+
+  home();
+})();
+</script>
